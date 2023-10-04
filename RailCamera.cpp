@@ -18,7 +18,7 @@ void RailCamera::Initialize(WorldTransform worldTransform, Vector3 radian) {
 	viewProjection_.Initialize();
 	viewProjection_.farZ = 10000.0f;
 
-	//シングルトンインスタンスを取得する
+	//シングルトンインスタンスを取得する 
 	input_ = Input::GetInstance();
 	kMoveSpeed.z = 0.0f;
 	//kRotSpeed.y = (1.0f/360.0f);
