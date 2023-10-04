@@ -29,7 +29,7 @@ void RailCamera::Update() {
 
 	worldTransform_.translation_ = Add(worldTransform_.translation_, kMoveSpeed);
 	
-	worldTransform_.rotation_ = Add(kRotSpeed,worldTransform_.rotation_ );
+	worldTransform_.rotation_ = Add(kRotSpeed,worldTransform_.rotation_ ); 
 
 	//ワールドトランスフォームのワールド座標再計算
 	worldTransform_.UpdateMatrix();
