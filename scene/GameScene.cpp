@@ -1,15 +1,16 @@
 #include "GameScene.h"
-#include <fstream>
-
-#include "MyMath.h"
 
 #include <cassert>
+#include <fstream>
+#include <sstream>
+#include <memory>
 #include <list>
+
+#include "MyMath.h"
 
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
-	delete debugCamera_;
 }
 
 void GameScene::Initialize() {
@@ -17,6 +18,9 @@ void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
+
+	// キー入力 初期化
+	button->Initialize();
 
 	//3Dモデルの生成
 	modelSkydome_.reset(Model::CreateFromOBJ("skydome", true));
@@ -33,14 +37,35 @@ void GameScene::Initialize() {
 	skydome_ = std::make_unique<Skydome>();
 	skydome_->Initialize(modelSkydome_.get());
 
+	//グラウンドの初期化
 	ground_ = std::make_unique<Ground>();
 	ground_->Initialize(modelGround_.get());
 
-	railCamera_ = std::make_unique<RailCamera>();
-	railCamera_->Initialize(worldTransform_, { 0.00f,0.00f,0.00f });
+	//カメラの初期化
+	camera_ = std::make_unique<RailCamera>();
+	camera_->Initialize(worldTransform_, { 0.0f,0.0f,0.0f });
 
-	//デバッグカメラの生成
-	debugCamera_ = new DebugCamera(WinApp::kWindowHeight, WinApp::kWindowWidth);
+	//プレイヤーの初期化
+	playerTex_ = TextureManager::Load("white1x1.png");
+	playerModel_.reset(Model::Create());
+
+	std::vector<Model*> playerModels{
+		playerModel_.get()};
+	std::vector<uint32_t> playerTextures{playerTex_};
+
+	player_ = std::make_unique<Player>();
+	player_->Initialize(playerModels, playerTextures);
+
+	//エネミーの初期化
+	enemyTex_ = TextureManager::Load("white1x1.png");
+	enemyModel_.reset(Model::Create());
+
+	std::vector<Model*> enemyModels{
+		enemyModel_.get()};
+	std::vector<uint32_t> enemyTextures{enemyTex_};
+
+	enemy_ = std::make_unique<Enemy>();
+	enemy_->Initialize(enemyModels, enemyTextures);
 
 	//軸方向の表示を有効にする
 	AxisIndicator::GetInstance()->SetVisible(true);
@@ -52,17 +77,26 @@ void GameScene::Update() {
 
 	//XINPUT_STATE joyState;
 
-	//ビュープロジェクション行列の更新と転送
-	railCamera_->Update();
-	viewProjection_.matView = railCamera_->GetViewProjection().matView;
-	viewProjection_.matProjection = railCamera_->GetViewProjection().matProjection;
-	viewProjection_.TransferMatrix();
+	//キー入力の更新
+	button->Update();
 
 	//スカイドームの更新
 	skydome_->Update();
 
 	//グラウンドの更新
 	ground_->Update();
+
+	//プレイヤーの更新
+	player_->Update(viewProjection_);
+
+	//エネミーの更新
+	enemy_->Update(viewProjection_);
+
+	//ビュープロジェクション行列の更新と転送
+	camera_->Update();
+	viewProjection_.matView = camera_->GetViewProjection().matView;
+	viewProjection_.matProjection = camera_->GetViewProjection().matProjection;
+	viewProjection_.TransferMatrix();
 
 #ifdef _DEBUG
 
@@ -105,6 +139,12 @@ void GameScene::Draw() {
 
 	//グラウンドの更新
 	ground_->Draw(viewProjection_);
+
+	//プレイヤーの描画
+	player_->Draw(viewProjection_);
+
+	//エネミーの描画
+	enemy_->Draw(viewProjection_);
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

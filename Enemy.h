@@ -1,124 +1,68 @@
 ﻿#pragma once
-#include "EnemyBullet.h"
-
-//自機クラスの前方宣言
-class Player;
+#include "DirectXCommon.h"
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
 
 //GameSceneクラスの前方宣言
 class GameScene;
 
 class Enemy {
 private:
-	//行動フェーズ
-	enum class Phase {
-		Approach,//接近
-		Leave,//離脱
-	};
-
-	//カメラのビュープロジェクション
-	const ViewProjection* viewProjection_ = nullptr;
-
 	//ワールド変換データ
 	WorldTransform worldTransform_;
 
 	//モデル
-	Model* model_ = nullptr;
-	Model* modelBullet_ = nullptr;
+	std::vector<Model*> models_;
 
 	//テクスチャハンドル
-	uint32_t textureHandle_ = 0u;
+	std::vector<uint32_t> textures_;
+	uint32_t tex_ = 0u;
 
 	//キーボード入力
 	Input* input_ = nullptr;
 
-	//フェーズ
-	Phase phase_ = Phase::Approach;
-
-	//自キャラ
-	Player* player_ = nullptr;
-
-	//弾
-	//std::list<EnemyBullet*> bullets_;
-
-	//弾リストを取得
-	//const std::list<EnemyBullet*>& GetBullets() { return bullets_; }
-
-	//発射タイマー
-	int32_t shotTimer = 0;
-
 	//ゲームシーン
 	GameScene* gameScene_ = nullptr;
+
+	//カメラのビュープロジェクション
+	const ViewProjection* viewProjection_ = nullptr;
 
 	//デスフラグ
 	bool isDead_ = false;
 
-	//float move;
-
-	//メンバ関数ポインタ
-	void (Enemy::* pFunc)();
-
-	//メンバ関数ポインタのテーブル
-	static void (Enemy::* spFuncTable[])();
-
-	//円運動用
-	//中心座標
-	Vector3 center{};
-	//角度
-	Vector3 angle{};
-	//半径の長さ
-	float length;
-	int32_t hp_ = 40;
-
-	int32_t deathTimer = 900;
+	int32_t hp = 100;
 
 public:
 	Enemy();
 	~Enemy();
 	//初期化
-	void Initialize(Model* model, Model* modelBullet, uint32_t textureHandle, Vector3 pos);
+	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
 	//更新
-	void Update();
+	void Update(const ViewProjection viewProjection);
 	//描画
-	void Draw(ViewProjection viewProjection);
+	void Draw(const ViewProjection& viewProjection);
+	void DrawUI();
 
-	//接近フェーズ初期化
-	void ApproachInit();
-	//接近フェーズ更新
-	void ApproachUpdate();
-
-	//離脱フェーズ初期化
-	//void LeaveInit();
-	//離脱フェーズ更新
-	void LeaveUpdate();
-
-	//移動初期化
-	void InitializeMoveGimmick();
-
-	//移動更新
-	void UpdateMoveGimmick();
-
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
-
-	//弾発射
-	void Fire();
-
-	void SetPlayer(Player* player) { player_ = player; }
-
+	//セッター
+	void SetParent(const WorldTransform* parent);
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	void SetModels(const std::vector<Model*>& models) { models_ = models; }
+	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
 
-	//ワールド座標を取得
-	const Vector3& GetWorldPosition() { return worldTransform_.translation_; }
-
-	//発射間隔
-	static const int kFireInterval = 60;
-
-	//衝突を検出したら呼び出されるコールバック関数
-	void OnCollision();
-
-	//弾リストを取得
-	//const std::list<EnemyBullet*>& GetBullets() { return bullets_; }
-
-	//
+	//ゲッター
+	Vector3 GetWorldPosition();
+	const WorldTransform& GetWorldTransform() { return worldTransform_; }
+	const ViewProjection* GetViewProjection() { return viewProjection_; }
 	bool IsDead() { return isDead_; }
-	int32_t GetEnemyHp() { return hp_; }
+	int32_t GetPlayerHp() { return hp; }
+
+	//当たり判定
+	void OnCollision();
 };

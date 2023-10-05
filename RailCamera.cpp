@@ -10,18 +10,25 @@ RailCamera::~RailCamera() {}
 
 //初期化
 void RailCamera::Initialize(WorldTransform worldTransform, Vector3 radian) {
+	//シングルトンインスタンスを取得する 
+	input_ = Input::GetInstance();
+
+	worldTransform_.Initialize();
+
 	//引数でワールド座標を受け取ってワールドトランスフォームに設定
 	worldTransform_ = worldTransform;
 	//引数で回転角[ラジアン]を受け取ってワールドトランスフォームに設定
 	worldTransform_.rotation_ = radian;
+
+	worldTransform_.translation_ = { -0.1f,-0.4f,3.5f };
+	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
+
 	//ビュープロジェクションの初期化
 	viewProjection_.Initialize();
 	viewProjection_.farZ = 10000.0f;
 
-	//シングルトンインスタンスを取得する 
-	input_ = Input::GetInstance();
-	kMoveSpeed.z = 0.0f;
-	//kRotSpeed.y = (1.0f/360.0f);
+	//ワールドトランスフォームのワールド座標再計算
+	worldTransform_.UpdateMatrix();
 }
 //更新
 void RailCamera::Update() {
@@ -40,10 +47,14 @@ void RailCamera::Update() {
 	//カメラの座標を画面表示させる処理
 #ifdef _DEBUG
 
-	ImGui::Begin("Camera");
-	ImGui::DragFloat3("Camera.translation", &worldTransform_.translation_.x, 0.01f);
-	ImGui::DragFloat3("Camera.rotate", &worldTransform_.rotation_.x, 0.01f);
+	ImGui::Begin("window");
+	if (ImGui::TreeNode("camera")) {
+		ImGui::DragFloat3("translation", &worldTransform_.translation_.x, 0.01f);
+		ImGui::DragFloat3("rotate", &worldTransform_.rotation_.x, 0.01f);
+		ImGui::TreePop();
+	}
 	ImGui::End();
+
 #endif // _DEBUG
 
 }

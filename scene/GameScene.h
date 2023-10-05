@@ -1,9 +1,10 @@
 #pragma once
-#include <sstream>
-#include <memory>
 #include "Skydome.h"
 #include "Ground.h"
 #include "RailCamera.h"
+#include "player.h"
+#include "enemy.h"
+#include "Button.h"
 
 typedef enum {
 	TITLE,
@@ -48,23 +49,37 @@ private: // メンバ変数
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 
-	//デバッグカメラ
-	DebugCamera* debugCamera_ = nullptr;
+	/// <summary>
+	/// ゲームシーン用
+	/// </summary>
 
-	//ワールドトランスフォーム
-	WorldTransform worldTransform_;
+	// キー入力
+	Button* button = Button::GetInstance();
 
 	//ビュープロジェクション
 	ViewProjection viewProjection_;
 
+	//レールカメラ
+	std::unique_ptr<RailCamera> camera_ = nullptr;
+
+	//ワールドトランスフォーム
+	WorldTransform worldTransform_;
+
 	//スカイドーム
-	std::unique_ptr<Skydome> skydome_;
+	std::unique_ptr<Skydome> skydome_ = nullptr;
 	std::unique_ptr <Model> modelSkydome_ = nullptr;
 
 	//グラウンド
-	std::unique_ptr<Ground> ground_;
+	std::unique_ptr<Ground> ground_ = nullptr;
 	std::unique_ptr <Model> modelGround_ = nullptr;
 
-	//レールカメラ
-	std::unique_ptr<RailCamera> railCamera_;
+	// プレイヤー
+	std::unique_ptr<Player> player_ = nullptr;
+	std::unique_ptr<Model> playerModel_ = nullptr;
+	uint32_t playerTex_ = 0u;
+
+	//エネミー
+	std::unique_ptr<Enemy> enemy_ = nullptr;
+	std::unique_ptr<Model> enemyModel_ = nullptr;
+	uint32_t enemyTex_ = 0u;
 };

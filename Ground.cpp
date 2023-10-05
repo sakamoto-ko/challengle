@@ -13,9 +13,9 @@ void Ground::Initialize(Model* model) {
 }
 
 void Ground::Update() {
-	worldTransform_.translation_ = { 0,0,0 };
-	worldTransform_.scale_.x = 0.1f;
-	worldTransform_.scale_.z = 0.1f;
+	worldTransform_.translation_ = { 0.0f,0.0f,50.0f };
+	worldTransform_.rotation_ = { -1.5f,0.0f,0.00f };
+	worldTransform_.scale_ = { 0.1f,0.03f,0.03f };
 	worldTransform_.UpdateMatrix();
 }
 
