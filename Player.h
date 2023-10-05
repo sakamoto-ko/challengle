@@ -1,13 +1,8 @@
 #pragma once
-#include "DirectXCommon.h"
-#include "ImGuiManager.h"
-#include "Input.h"
-#include "Model.h"
-#include "SafeDelete.h"
-#include "Sprite.h"
-#include "TextureManager.h"
-#include "ViewProjection.h"
-#include "WorldTransform.h"
+#include "PlayerBullet.h"
+#include "Button.h"
+
+#define PLAYER_BULLET_MAX 1
 
 typedef enum {
 	BOTTOM,
@@ -20,24 +15,28 @@ class GameScene;
 
 class Player {
 private:
-	//ワールド変換データ
-	WorldTransform worldTransform_;
-
-	//モデル
-	std::vector<Model*> models_;
-
-	//テクスチャハンドル
-	std::vector<uint32_t> textures_;
-	uint32_t tex_ = 0u;
-
-	//キーボード入力
-	Input* input_ = nullptr;
-
 	//ゲームシーン
 	GameScene* gameScene_ = nullptr;
 
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
+
+	//キーボード入力
+	Input* input_ = nullptr;
+	Button* button = Button::GetInstance();
+
+	//モデル
+	std::vector<Model*> models_;
+	std::vector<Model*> bulletModels_;
+
+	//テクスチャハンドル
+	std::vector<uint32_t> textures_;
+	uint32_t tex_ = 0u;
+	std::vector<uint32_t> bulletTextures_;
+	uint32_t bulletTex_ = 0u;
+
+	//ワールド変換データ
+	WorldTransform worldTransform_;
 
 	//体力
 	int32_t hp = 100;
@@ -52,6 +51,13 @@ private:
 	bool isMove_ = false;
 	int moveCount_ = 0;
 
+	//攻撃フラグ
+	bool isAttack_ = false;
+	int attackChargeCount_ = 0;
+	int attackCoolDown_ = 0;
+
+	int playerBulletNum_ = 0;
+
 public:
 	Player();
 	~Player();
@@ -65,6 +71,11 @@ public:
 
 	//移動
 	void Move();
+
+	//攻撃
+	void Attack();
+	//弾発射
+	void Shot();
 
 	//セッター
 	void SetParent(const WorldTransform* parent);

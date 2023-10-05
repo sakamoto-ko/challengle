@@ -44,6 +44,12 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	//衝突判定
+	void CheckAllCollisions();
+
+	//自弾の追加
+	void AddPlayerBullet(PlayerBullet* playerBullet);
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -77,6 +83,13 @@ private: // メンバ変数
 	std::unique_ptr<Player> player_ = nullptr;
 	std::unique_ptr<Model> playerModel_ = nullptr;
 	uint32_t playerTex_ = 0u;
+
+	//自弾
+	std::list<PlayerBullet*> playerBullets_;
+	std::unique_ptr<Model>  playerBulletModel_ = nullptr;
+	uint32_t playerBulletTex_ = 0u;
+	//弾リストを取得
+	const std::list<PlayerBullet*>& GetPlayerBullets() { return playerBullets_; }
 
 	//エネミー
 	std::unique_ptr<Enemy> enemy_ = nullptr;

@@ -16,18 +16,6 @@ void Button::Update() {
 
 	// ゲームパッドのインスタンスを取得
 	Gamepad::Input();
-
-#ifdef _DEBUG
-
-	ImGui::Begin("window");
-	if (ImGui::TreeNode("button")) {
-		ImGui::Text("Press %d", isPress());
-		ImGui::Text("Trigger %d", isTrigger());
-		ImGui::TreePop();
-	}
-	ImGui::End();
-
-#endif // _DEBUG
 }
 
 bool Button::isTrigger() {

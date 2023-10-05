@@ -48,7 +48,7 @@ void Enemy::Initialize(const std::vector<Model*>& models, const std::vector<uint
 
 	worldTransform_.translation_ = { 12.0f,-0.02f,40.0f };
 	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
-	worldTransform_.scale_ = { 4.0f,4.0f,1.0f };
+	worldTransform_.scale_ = { 5.0f,5.0f,5.0f };
 
 	worldTransform_.UpdateMatrix();
 

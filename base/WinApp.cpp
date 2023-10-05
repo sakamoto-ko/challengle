@@ -23,7 +23,7 @@ BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle
 }
 } // namespace
 
-const wchar_t WinApp::kWindowClassName[] = L"NinjaLoad";
+const wchar_t WinApp::kWindowClassName[] = L"challengel";
 
 WinApp* WinApp::GetInstance() {
 	static WinApp instance;
