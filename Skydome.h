@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Audio.h"
 #include "AxisIndicator.h"
 #include "DebugCamera.h"

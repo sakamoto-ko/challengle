@@ -1,96 +1,71 @@
 #pragma once
-#include "PlayerBullet.h"
-#include "Button.h"
+#include "BaseCharactor.h"
+#include <optional>
 
-#define PLAYER_BULLET_MAX 1
-
-typedef enum {
-	BOTTOM,
-	MID,
-	TOP,
-}Lane;
-
-//GameSceneクラスの前方宣言
-class GameScene;
-
-class Player {
+class Player : public BaseCharacter{
 private:
-	//ゲームシーン
-	GameScene* gameScene_ = nullptr;
+	WorldTransform worldTransformBase_;
+	WorldTransform worldTransformFace_;
+	WorldTransform worldTransformBody_;
+	WorldTransform worldTransformL_arm_;
+	WorldTransform worldTransformR_arm_;
+	WorldTransform worldTransformWeapon_;
 
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 
-	//キーボード入力
-	Input* input_ = nullptr;
-	Button* button = Button::GetInstance();
+	//浮遊ギミックの媒介変数
+	float idelArmAngleMax_ = 0.0f;
 
-	//モデル
-	std::vector<Model*> models_;
-	std::vector<Model*> bulletModels_;
+	uint16_t frame_ = 0;
+	uint16_t floatingCycle_ = 0;
+	float floatingAmplitude_ = 0;
 
-	//テクスチャハンドル
-	std::vector<uint32_t> textures_;
-	uint32_t tex_ = 0u;
-	std::vector<uint32_t> bulletTextures_;
-	uint32_t bulletTex_ = 0u;
+	uint32_t kModelFace = 0;
+	uint32_t kModelBody = 1;
+	uint32_t kModelL_arm = 2;
+	uint32_t kModelR_arm = 3;
+	uint32_t kModelWeapon = 4;
 
-	//ワールド変換データ
-	WorldTransform worldTransform_;
+	enum class Behavior {
+		kRoot,//通常状態
+		kAttack,//攻撃中
+	};
+	Behavior behavior_ = Behavior::kRoot;
 
-	//体力
-	int32_t hp = 100;
+	//次のふるまいリクエスト
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
-	//デスフラグ
-	bool isDead_ = false;
-
-	//プレイヤーの座標レーン
-	int lane_ = MID;
-
-	//移動フラグ
-	bool isMove_ = false;
-	int moveCount_ = 0;
-
-	//攻撃フラグ
-	bool isAttack_ = false;
-	int attackChargeCount_ = 0;
-	int attackCoolDown_ = 0;
-
-	int playerBulletNum_ = 0;
+	int isAttack = false;
+	int afterAttackStay = 20;
 
 public:
 	Player();
 	~Player();
-	//初期化
-	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
-	//更新
-	void Update(const ViewProjection viewProjection);
-	//描画
-	void Draw(const ViewProjection& viewProjection);
-	void DrawUI();
+	void Initialize(const std::vector<Model*>& models) override;
+	void Update() override;
+	void Draw(const ViewProjection& viewProjection) override;
 
-	//移動
-	void Move();
+	const WorldTransform& GetWorldTransform() { return worldTransformBase_; }
 
-	//攻撃
-	void Attack();
-	//弾発射
-	void Shot();
+	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 
-	//セッター
-	void SetParent(const WorldTransform* parent);
-	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
-	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
-	void SetModels(const std::vector<Model*>& models) { models_ = models; }
-	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
+	//浮遊ギミック初期化
+	void InitializeFloatingGimmick();
 
-	//ゲッター
-	Vector3 GetWorldPosition();
-	const WorldTransform& GetWorldTransform() { return worldTransform_; }
-	const ViewProjection* GetViewProjection() { return viewProjection_; }
-	bool IsDead() { return isDead_; }
-	int32_t GetPlayerHp() { return hp; }
+	//浮遊ギミック更新
+	void UpdateFloatingGimmick();
 
-	//当たり判定
-	void OnCollision();
+	//通常行動初期化
+	void BehaviorRootInitialize();
+	//通常行動更新
+	void BehaviorRootUpdate();
+
+	//攻撃行動初期化
+	void BehaviorAttackInitialize();
+	//攻撃行動更新
+	void BehaviorAttackUpdate();
+
+	//調整項目の適用
+	void ApplyGlobalVariables();
 };

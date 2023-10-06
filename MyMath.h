@@ -5,12 +5,6 @@
 #include "Matrix4x4.h"
 #include <cmath>
 
-#include <cassert>
-const float playerRadius = 2.0f;
-const float enemyRadius = 2.0f;
-const float playerBulletRadius = 2.0f;
-const float enemyBulletRadius = 2.0f;
-
 #define PAI 3.14f
 
 // 加算
@@ -63,18 +57,3 @@ Vector3 Multiply(Vector3 v, Matrix4x4 m);
 //Vector3 Add(Vector3 v, Matrix4x4 m);
 //ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
-
-float Clamp(float x, float min, float max);
-
-//ベクトルとベクトルの加算
-//Vector3 Add(Vector3 v1, Vector3 v2);
-
-void EaseInLeft(Vector2& pos, float& velocity);
-void EaseInRight(Vector2& pos, float& velocity);
-void EaseInUp(Vector2& pos, float& velocity);
-void EaseInDown(Vector2& pos, float& velocity);
-
-void EaseOutLeft(Vector2& pos, float& velocity);
-void EaseOutRight(Vector2& pos, float& velocity);
-void EaseOutUp(Vector2& pos, float& velocity);
-void EaseOutDown(Vector2& pos, float& velocity);

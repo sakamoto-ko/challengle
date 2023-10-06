@@ -1,17 +1,15 @@
 #pragma once
+
+#include "Audio.h"
+#include "DirectXCommon.h"
+#include "DebugCamera.h"
+#include <memory>
+
+#include "Player.h"
+#include "Enemy.h"
 #include "Skydome.h"
 #include "Ground.h"
-#include "RailCamera.h"
-#include "player.h"
-#include "enemy.h"
-#include "Button.h"
-
-typedef enum {
-	TITLE,
-	GAME,
-	GAMEOVER,
-	CLEAR,
-}Scene;
+#include "FollowCamera.h"
 
 /// <summary>
 /// ゲームシーン
@@ -44,55 +42,52 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-	//衝突判定
-	void CheckAllCollisions();
-
-	//自弾の追加
-	void AddPlayerBullet(PlayerBullet* playerBullet);
+	//デバッグカメラ有効
+	bool isDebugCameraActive_ = false;
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
-	Audio* audio_ = nullptr;
 
-	/// <summary>
-	/// ゲームシーン用
-	/// </summary>
+	//テクスチャハンドル
+	//uint32_t textureHandle_ = 0;
 
-	// キー入力
-	Button* button = Button::GetInstance();
+	//スプライト
+	Sprite* sprite_ = nullptr;
 
-	//ビュープロジェクション
-	ViewProjection viewProjection_;
+	//3Dモデル
+	std::unique_ptr <Model> model_ = nullptr;
 
-	//レールカメラ
-	std::unique_ptr<RailCamera> camera_ = nullptr;
+	std::unique_ptr <Model> modelSkydome_ = nullptr;
+	std::unique_ptr <Model> modelGround_ = nullptr;
+	
+	//プレイヤーモデル
+	std::unique_ptr<Model> modelFace_;
+	std::unique_ptr<Model> modelBody_;
+	std::unique_ptr<Model> modelL_arm_;
+	std::unique_ptr<Model> modelR_arm_;
+	std::unique_ptr<Model> modelWeapon_;
+	//エネミーモデル
+	std::unique_ptr<Model> modelEnemyBody_;
+	std::unique_ptr<Model> modelEnemyL_arm_;
+	std::unique_ptr<Model> modelEnemyR_arm_;
 
 	//ワールドトランスフォーム
 	WorldTransform worldTransform_;
 
-	//スカイドーム
-	std::unique_ptr<Skydome> skydome_ = nullptr;
-	std::unique_ptr <Model> modelSkydome_ = nullptr;
+	//ビュープロジェクション
+	ViewProjection viewProjection_;
 
-	//グラウンド
-	std::unique_ptr<Ground> ground_ = nullptr;
-	std::unique_ptr <Model> modelGround_ = nullptr;
+	//デバッグカメラ
+	DebugCamera* debugCamera_ = nullptr;
 
-	// プレイヤー
-	std::unique_ptr<Player> player_ = nullptr;
-	std::unique_ptr<Model> playerModel_ = nullptr;
-	uint32_t playerTex_ = 0u;
+	std::unique_ptr<Player> player_;
 
-	//自弾
-	std::list<PlayerBullet*> playerBullets_;
-	std::unique_ptr<Model>  playerBulletModel_ = nullptr;
-	uint32_t playerBulletTex_ = 0u;
-	//弾リストを取得
-	const std::list<PlayerBullet*>& GetPlayerBullets() { return playerBullets_; }
+	std::unique_ptr<Enemy> enemy_;
 
-	//エネミー
-	std::unique_ptr<Enemy> enemy_ = nullptr;
-	std::unique_ptr<Model> enemyModel_ = nullptr;
-	uint32_t enemyTex_ = 0u;
+	std::unique_ptr<Skydome> skydome_;
+
+	std::unique_ptr<Ground> ground_;
+
+	std::unique_ptr<FollowCamera> followCamera_;
 };

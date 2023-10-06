@@ -1,68 +1,42 @@
-﻿#pragma once
-#include "DirectXCommon.h"
-#include "ImGuiManager.h"
-#include "Input.h"
-#include "Model.h"
-#include "SafeDelete.h"
-#include "Sprite.h"
-#include "TextureManager.h"
-#include "ViewProjection.h"
-#include "WorldTransform.h"
+#pragma once
+#include "BaseCharactor.h"
 
-//GameSceneクラスの前方宣言
-class GameScene;
-
-class Enemy {
+class Enemy : public BaseCharacter
+{
 private:
-	//ワールド変換データ
-	WorldTransform worldTransform_;
+	WorldTransform worldTransformBody_;
+	WorldTransform worldTransformL_arm_;
+	WorldTransform worldTransformR_arm_;
 
-	//モデル
-	std::vector<Model*> models_;
+	uint32_t kModelBody = 0;
+	uint32_t kModelL_arm = 1;
+	uint32_t kModelR_arm = 2;
 
-	//テクスチャハンドル
-	std::vector<uint32_t> textures_;
-	uint32_t tex_ = 0u;
-
-	//キーボード入力
-	Input* input_ = nullptr;
-
-	//ゲームシーン
-	GameScene* gameScene_ = nullptr;
+	//円運動用
+	//中心座標
+	Vector3 center{};
+	//角度
+	Vector3 angle{};
+	//半径の長さ
+	float length;
 
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 
-	//デスフラグ
-	bool isDead_ = false;
-
-	int32_t hp = 100;
-
 public:
 	Enemy();
 	~Enemy();
-	//初期化
-	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
-	//更新
-	void Update(const ViewProjection viewProjection);
-	//描画
-	void Draw(const ViewProjection& viewProjection);
-	void DrawUI();
+	void Initialize(const std::vector<Model*>& models) override;
+	void Update() override;
+	void Draw(const ViewProjection& viewProjection) override;
 
-	//セッター
-	void SetParent(const WorldTransform* parent);
-	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
-	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
-	void SetModels(const std::vector<Model*>& models) { models_ = models; }
-	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
+	//移動初期化
+	void InitializeMoveGimmick();
 
-	//ゲッター
-	Vector3 GetWorldPosition();
-	const WorldTransform& GetWorldTransform() { return worldTransform_; }
-	const ViewProjection* GetViewProjection() { return viewProjection_; }
-	bool IsDead() { return isDead_; }
-	int32_t GetPlayerHp() { return hp; }
+	//移動更新
+	void UpdateMoveGimmick();
 
-	//当たり判定
-	void OnCollision();
+	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+
 };
+
