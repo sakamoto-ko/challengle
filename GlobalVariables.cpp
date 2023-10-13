@@ -247,53 +247,75 @@ void GlobalVariables::LoadFile(const std::string& groupName) {
 	}
 }
 
-////項目の追加(int)
-//void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, int32_t value) {
-//	//項目が未登録なら
-//	if () {
-//		SetValue(groupName, key, value);
-//	}
-//}
-////項目の追加(float)
-//void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, float value) {
-//	//項目が未登録なら
-//	if () {
-//		SetValue(groupName, key, value);
-//	}
-//}
-////項目の追加(Vector3)
-//void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, const Vector3& value) {
-//	//項目が未登録なら
-//	if () {
-//		SetValue(groupName, key, value);
-//	}
-//}
-//
-////値の取得
-//int32_t GlobalVariables::GetIntValue(const std::string& groupName, const std::string& key) const {
-//	assert();
-//	//グループの参照を取得
-//	const Group& group = dates_.at(groupName);
-//
-//	assert();
-//
-//	return;
-//}
-//float GlobalVariables::GetFloatValue(const std::string& groupName, const std::string& key) const {
-//	assert();
-//	//グループの参照を取得
-//	const Group& group = dates_.at(groupName);
-//
-//	assert();
-//
-//	return;
-//}
-//Vector3 GlobalVariables::GetVector3Value(const std::string& groupName, const std::string& key) const {
-//	assert();
-//	//グループの参照を取得
-//	const Group& group = dates_.at(groupName);
-//
-//	assert();
-//
-//	return;
-//}
+//項目の追加(int)
+void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, int32_t value) {
+
+	//グループを検索
+	std::map<std::string, Group>::iterator itGroup = dates_.find(groupName);
+
+	//項目が未登録なら
+	if (itGroup != dates_.end()) {
+		SetValue(groupName, key, value);
+	}
+}
+//項目の追加(float)
+void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, float value) {
+
+	//グループを検索
+	std::map<std::string, Group>::iterator itGroup = dates_.find(groupName);
+
+	//項目が未登録なら
+	if (itGroup != dates_.end()) {
+		SetValue(groupName, key, value);
+	}
+}
+//項目の追加(Vector3)
+void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, const Vector3& value) {
+
+	//グループを検索
+	std::map<std::string, Group>::iterator itGroup = dates_.find(groupName);
+
+	//項目が未登録なら
+	if (itGroup != dates_.end()) {
+		SetValue(groupName, key, value);
+	}
+}
+
+//値の取得
+int32_t GlobalVariables::GetIntValue(const std::string& groupName, const std::string& key) const {
+
+	//指定グループが存在している
+	assert(&dates_.at(groupName));
+	//グループの参照を取得
+	const Group& group = dates_.at(groupName);
+	//指定グループに指定のキーが存在している
+	assert(&group.items.at(key));
+	//指定グループから指定のキーの値を取得
+	const Item& item = group.items.at(key);
+	return std::get<int32_t>(item.value);
+
+}
+float GlobalVariables::GetFloatValue(const std::string& groupName, const std::string& key) const {
+
+	// 指定グループが存在している
+	assert(&dates_.at(groupName));
+	// グループの参照を取得
+	const Group& group = dates_.at(groupName);
+	// 指定グループに指定のキーが存在している
+	assert(&group.items.at(key));
+	// 指定グループから指定のキーの値を取得
+	const Item& item = group.items.at(key);
+	return std::get<float>(item.value);
+}
+Vector3 GlobalVariables::GetVector3Value(const std::string& groupName, const std::string& key) const {
+
+	// 指定グループが存在している
+	assert(&dates_.at(groupName));
+	// グループの参照を取得
+	const Group& group = dates_.at(groupName);
+	// 指定グループに指定のキーが存在している
+	assert(&group.items.at(key));
+	// 指定グループから指定のキーの値を取得
+	const Item& item = group.items.at(key);
+	return std::get<Vector3>(item.value);
+}

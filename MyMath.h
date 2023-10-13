@@ -19,6 +19,7 @@ float Dot(const Vector3& v1, const Vector3& v2);
 float Length(const Vector3& v);
 // 正規化
 Vector3 Normalize(const Vector3& v);
+float Normalize(const float& v);
 
 // 加算
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2);
