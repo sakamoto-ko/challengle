@@ -60,7 +60,7 @@ private:
 	bool isJump = false;
 
 	//ジャンプ初速
-	const float kJumpFirstSpeed = 0.1f;
+	const float kJumpFirstSpeed = 0.4f;
 
 	//重力加速度
 	const float kGravityAcceleration = 0.05f;

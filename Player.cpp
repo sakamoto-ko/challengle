@@ -75,8 +75,6 @@ void Player::Update(const ViewProjection viewProjection) {
 	//キー入力の更新
 	button->Update();
 
-	Move();
-
 	if (behaviorRequest_) {
 		//振る舞いを変更する
 		behavior_ = behaviorRequest_.value();
@@ -213,6 +211,20 @@ void Player::BehaviorJumpInitialize() {
 //ジャンプ行動更新
 void Player::BehaviorJumpUpdate() {
 
+	XINPUT_STATE joyState;
+	//速さ
+	const float speed = 0.1f;
+	//移動量
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		velocity_.x = (float)joyState.Gamepad.sThumbLX / SHRT_MAX;
+	}
+
+	velocity_.x *= speed;
+	velocity_.y += accelerationVector.y;
+
+	//移動
+	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
+
 	//着地
 	if (worldTransform_.translation_.y <= 0.0f) {
 		worldTransform_.translation_.y = 0.0f;
@@ -221,12 +233,6 @@ void Player::BehaviorJumpUpdate() {
 		velocity_.y = 0.0f;
 		worldTransform_.translation_.y = 0.0f;
 		behaviorRequest_ = Behavior::kRoot;
-	}
-	else {
-		//加速する
-		velocity_ = Add(velocity_, accelerationVector);
-		//移動
-		worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
 	}
 
 #ifdef _DEBUG
