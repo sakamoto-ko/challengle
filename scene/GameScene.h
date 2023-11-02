@@ -1,15 +1,9 @@
 #pragma once
-
-#include "Audio.h"
-#include "DirectXCommon.h"
-#include "DebugCamera.h"
-#include <memory>
-
-#include "Player.h"
-#include "Enemy.h"
 #include "Skydome.h"
 #include "Ground.h"
-#include "FollowCamera.h"
+#include "RailCamera.h"
+#include "player.h"
+#include "Button.h"
 
 /// <summary>
 /// ゲームシーン
@@ -42,52 +36,65 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-	//デバッグカメラ有効
-	bool isDebugCameraActive_ = false;
+	/*void TitleSceneInitialize();
+	void TitleSceneUpdate();
+	void TitleSceneDraw();
+	void TitleSceneDrawUI();*/
+
+	void GameSceneInitialize();
+	void GameSceneUpdate();
+	void GameSceneDraw();
+	void GameSceneDrawUI();
+
+	/*void ClearSceneInitialize();
+	void ClearSceneUpdate();
+	void ClearSceneDraw();
+	void ClearSceneDrawUI();*/
+
+	/*void GameoverSceneInitialize();
+	void GameoverSceneUpdate();
+	void GameoverSceneDraw();
+	void GameoverSceneDrawUI();*/
+
+	//衝突判定
+	void CheckAllCollisions();
+
+	void AllReset();
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
+	Audio* audio_ = nullptr;
 
-	//テクスチャハンドル
-	//uint32_t textureHandle_ = 0;
+	/// <summary>
+	/// ゲームシーン用
+	/// </summary>
 
-	//スプライト
-	Sprite* sprite_ = nullptr;
-
-	//3Dモデル
-	std::unique_ptr <Model> model_ = nullptr;
-
-	std::unique_ptr <Model> modelSkydome_ = nullptr;
-	std::unique_ptr <Model> modelGround_ = nullptr;
-	
-	//プレイヤーモデル
-	std::unique_ptr<Model> modelFace_;
-	std::unique_ptr<Model> modelBody_;
-	std::unique_ptr<Model> modelL_arm_;
-	std::unique_ptr<Model> modelR_arm_;
-	std::unique_ptr<Model> modelWeapon_;
-	//エネミーモデル
-	std::unique_ptr<Model> modelEnemyBody_;
-	std::unique_ptr<Model> modelEnemyL_arm_;
-	std::unique_ptr<Model> modelEnemyR_arm_;
-
-	//ワールドトランスフォーム
-	WorldTransform worldTransform_;
+	// キー入力
+	Button* button = Button::GetInstance();
 
 	//ビュープロジェクション
 	ViewProjection viewProjection_;
 
-	//デバッグカメラ
-	DebugCamera* debugCamera_ = nullptr;
+	//レールカメラ
+	std::unique_ptr<RailCamera> camera_ = nullptr;
 
-	std::unique_ptr<Player> player_;
+	//ワールドトランスフォーム
+	WorldTransform worldTransform_;
 
-	std::unique_ptr<Enemy> enemy_;
+	//スカイドーム
+	std::unique_ptr<Skydome> skydome_ = nullptr;
+	std::unique_ptr <Model> modelSkydome_ = nullptr;
 
-	std::unique_ptr<Skydome> skydome_;
+	//グラウンド
+	std::unique_ptr<Ground> ground_ = nullptr;
+	std::unique_ptr <Model> modelGround_ = nullptr;
 
-	std::unique_ptr<Ground> ground_;
+	// プレイヤー
+	std::unique_ptr<Player> player_ = nullptr;
+	std::unique_ptr<Model> playerModel_ = nullptr;
+	uint32_t playerTex_ = 0u;
 
-	std::unique_ptr<FollowCamera> followCamera_;
+	uint32_t whiteTex_ = 0u;
+
 };

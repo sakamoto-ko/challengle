@@ -1,5 +1,4 @@
 #include "MyMath.h"
-#include <cassert>
 
 // 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
@@ -50,16 +49,6 @@ Vector3 Normalize(const Vector3& v) {
 		result.x = v.x / length;
 		result.y = v.y / length;
 		result.z = v.z / length;
-	}
-	return result;
-}
-
-// 正規化
-float Normalize(const float& v) {
-	float result = { 0 };
-	float length = sqrtf(v * v);
-	if (length != 0) {
-		result = v / length;
 	}
 	return result;
 }
@@ -286,7 +275,7 @@ Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
 	result.x = v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0] + 1.0f * m.m[3][0];
 	result.y = v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1] + 1.0f * m.m[3][1];
 	result.z = v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] + 1.0f * m.m[3][2];
-	float w = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + 1.0f * m.m[3][3];
+	float w= v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + 1.0f * m.m[3][3];
 	assert(w != 0.0f);
 	result.x /= w;
 	result.y /= w;
@@ -525,4 +514,87 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 	result.m[3][3] = 1;
 
 	return result;
+}
+
+Vector3 Add(Vector3 v1, Vector3 v2) {
+	Vector3 result;
+	result = {
+		v1.x + v2.x,
+		v1.y + v2.y,
+		v1.z + v2.z
+	};
+	return result;
+}
+float Clamp(float x, float min, float max) {
+
+	if (x > max) {
+		return max;
+	}
+
+	if (x < min) {
+		return min;
+	}
+
+	return x;
+}
+
+void EaseInLeft(Vector2& pos, float& velocity) {
+	float accelelate = 0.8f;
+
+	velocity += accelelate;
+	pos.x -= velocity;
+
+}
+void EaseInRight(Vector2& pos, float& velocity) {
+	float accelelate = 0.8f;
+
+	velocity += accelelate;
+	pos.x += velocity;
+
+}
+void EaseInUp(Vector2& pos, float& velocity) {
+	float accelelate = 0.03f;
+
+	velocity += accelelate;
+	pos.y -= velocity;
+
+}
+void EaseInDown(Vector2& pos, float& velocity) {
+	float accelelate = 0.03f;
+
+	velocity += accelelate;
+	pos.y += velocity;
+}
+
+void EaseOutLeft(Vector2& pos, float velocity) {
+	float accelelate = -0.03f;
+
+	velocity += accelelate;
+	pos.x -= velocity;
+
+}
+void EaseOutRight(Vector2& pos, float& velocity) {
+	float accelelate = -0.03f;
+
+	velocity += accelelate;
+	pos.x += velocity;
+
+}
+void EaseOutUp(Vector2& pos, float& velocity) {
+	float accelelate = -0.03f;
+
+	velocity += accelelate;
+	pos.y -= velocity;
+
+}
+void EaseOutDown(Vector2& pos, float& velocity) {
+	float accelelate = -0.03f;
+
+	velocity += accelelate;
+	pos.y += velocity;
+
+}
+
+void SetRandom() {
+	srand(unsigned int(time(nullptr)));
 }

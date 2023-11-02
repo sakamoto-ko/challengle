@@ -12,28 +12,26 @@ TransitionEffect* TransitionEffect::GetInstance() {
 }
 
 void TransitionEffect::Init() {
-	textureHandle_[0] = TextureManager::Load("hud/leftDoor.png");
-	textureHandle_[1] = TextureManager::Load("hud/rightDoor.png");
+	textureHandle_[0] = TextureManager::Load("hud/downTriangle.png");
+	textureHandle_[1] = TextureManager::Load("hud/upTriangle.png");
 
 	//スプライト生成
 	for (int i = 0; i < 2; i++) {
 		transition_[i].reset(Sprite::Create(textureHandle_[i], { 0.0f,0.0f }));
-		transition_[i]->SetSize({ 640.0f, 720.0f });
-		transition_[i]->SetTextureRect({ 0.0f, 0.0f }, { 131.0f, 251.0f });
+		transition_[i]->SetSize({ 1280.0f, 720.0f });
+		transition_[i]->SetTextureRect({ 0.0f, 0.0f }, { 1280.0f, 720.0f });
+		transition_[i]->SetPosition({ 0.0f,-720.0f });
 	}
 
-	leftMove = { -640.0f,0.0f };
-	rightMove = { 1280.0f,0.0f };
+	downMove = { 0.0f,-720.0f };
+	upMove = { 0.0f,-640.0f };
 
-	transition_[0]->SetPosition({ -640.0f,0.0f });
-	transition_[1]->SetPosition({ 1280.0f,0.0f });
-
-	velocity = { 1.0f,0.0f };
+	velocity = { 0.0f,8.0f };
 	accelelate = { 0.0f,0.0f };
-	boundCount_ = 0;
-	addAccelelate = 0.03f;
+	addAccelelate = 0.1f;
 	isFadeIn_ = true;
 	isFadeOut_ = false;
+	isNext = false;
 	count_ = 0;
 }
 
@@ -41,56 +39,67 @@ void TransitionEffect::Update() {
 
 	if (isSceneChange) {
 		if (isFadeIn_) {
-			accelelate.x += addAccelelate;
-			velocity.x += accelelate.x;
-
-			if (transition_[0]->GetPosition().x + 640.0f >= transition_[1]->GetPosition().x) {
-				boundCount_++;
-				if (boundCount_ <= 2) {
-					velocity.x *= -1.0f;
+			if (!isNext) {
+				if (velocity.y <= 0.0f) {
+					if (++count_ >= 20) {
+						velocity = { 0.0f,10.0f };
+						upMove = { 0.0f,-600.0f };
+						isNext = true;
+						count_ = 0;
+					}
 				}
 				else {
-					velocity.x *= 0.0f;
-					addAccelelate = 0.0f;
-					isFadeIn_ = false;
-					isFadeOut_ = true;
+					velocity.y -= addAccelelate;
+
+					downMove.y += velocity.y;
 				}
-			}
-			if (boundCount_ <= 2) {
-				addAccelelate = 0.02f;
 			}
 			else {
-				addAccelelate -= 0.01f;
-			}
+				downMove.y += velocity.y;
+				upMove.y += velocity.y;
 
-			leftMove.x += velocity.x;
-			rightMove.x -= velocity.x;
-		}
-		else if (isFadeOut_) {
-			count_++;
-			if (count_ >= 30) {
-				addAccelelate = 0.03f;
-
-				accelelate.x += addAccelelate;
-				velocity.x += accelelate.x;
-
-				leftMove.x -= velocity.x;
-				rightMove.x += velocity.x;
-
-				if (transition_[0]->GetPosition().x <= 0.0f &&
-					transition_[1]->GetPosition().x >= 1280.0f) {
-					isFadeOut_ = false;
-					isSceneChange = false;
-					count_ = 0;
+				if (transition_[0]->GetPosition().y + 720.0f >= 720.0f) {
+					isFadeIn_ = false;
+					isFadeOut_ = true;
+					isNext = false;
+					addAccelelate = 0.08f;
 				}
 			}
 		}
-		leftMove.x = Clamp(leftMove.x, -640.0f, 0.0f);
-		rightMove.x = Clamp(rightMove.x, 640.0f, 1280.0f);
+		else if (isFadeOut_) {
 
-		transition_[0]->SetPosition({ leftMove.x,leftMove.y });
-		transition_[1]->SetPosition({ rightMove.x,rightMove.y });
+			if (!isNext) {
+				if (velocity.y <= 0.0f) {
+					if (++count_ >= 20) {
+						velocity = { 0.0f,10.0f };
+						isNext = true;
+						count_ = 0;
+					}
+				}
+				else {
+					velocity.y -= addAccelelate;
+					downMove.y += velocity.y;
+					upMove.y += velocity.y;
+				}
+			}
+			else {
+				downMove.y += velocity.y;
+				upMove.y += velocity.y;
+
+				if (transition_[1]->GetPosition().y >= 720.0f) {
+					isFadeOut_ = false;
+					isSceneChange = false;
+					isNext = false;
+				}
+			}
+		}
 	}
+
+	//upMove.y = Clamp(upMove.y, -1280.0f, 1280.0f);
+	//downMove.y = Clamp(downMove.y, -1280.0f, 1280.0f);
+
+	transition_[0]->SetPosition({ 0.0f,downMove.y });
+	transition_[1]->SetPosition({ 0.0f,upMove.y });
 }
 
 void TransitionEffect::Draw() {
@@ -102,17 +111,17 @@ void TransitionEffect::Draw() {
 
 void TransitionEffect::Reset() {
 
-	leftMove = { -640.0f,0.0f };
-	rightMove = { 1280.0f,0.0f };
+	transition_[0]->SetPosition({ 0.0f,-720.0f });
+	transition_[1]->SetPosition({ 0.0f,-720.0f });
 
-	transition_[0]->SetPosition({ -640.0f,0.0f });
-	transition_[1]->SetPosition({ 1280.0f,0.0f });
+	downMove = { 0.0f,-720.0f };
+	upMove = { 0.0f,-720.0f };
 
-	velocity = { 1.0f,0.0f };
+	velocity = { 0.0f,10.0f };
 	accelelate = { 0.0f,0.0f };
-	boundCount_ = 0;
-	addAccelelate = 0.03f;
+	addAccelelate = 0.1f;
 	isFadeIn_ = true;
 	isFadeOut_ = false;
+	isNext = false;
 	count_ = 0;
 }

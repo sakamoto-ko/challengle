@@ -66,4 +66,7 @@ public:
 	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
 
 	Vector3 GetWorldPosition();
+	//リセット
+	void Reset();
+
 };

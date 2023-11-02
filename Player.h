@@ -1,83 +1,70 @@
 #pragma once
-#include "BaseCharactor.h"
-#include <optional>
+#include "Audio.h"
+#include "AxisIndicator.h"
+#include "DebugCamera.h"
+#include "DirectXCommon.h"
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
+#include "Button.h"
+#include "scene.h"
 
-class Player : public BaseCharacter{
+//GameSceneクラスの前方宣言
+class GameScene;
+
+class Player {
 private:
+	//ゲームシーン
+	GameScene* gameScene_ = nullptr;
+
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 
-	uint32_t kModelFace = 0;
-	uint32_t kModelBody = 1;
-	uint32_t kModelL_arm = 2;
-	uint32_t kModelR_arm = 3;
-	uint32_t kModelWeapon = 4;
+	//キーボード入力
+	Input* input_ = nullptr;
+	Button* button = Button::GetInstance();
 
-	WorldTransform worldTransformBase_;
-	WorldTransform worldTransformFace_;
-	WorldTransform worldTransformBody_;
-	WorldTransform worldTransformL_arm_;
-	WorldTransform worldTransformR_arm_;
-	WorldTransform worldTransformWeapon_;
+	//モデル
+	std::vector<Model*> models_;
 
-	//速度
-	Vector3 velocity_ = {};
+	//テクスチャハンドル
+	std::vector<uint32_t> textures_;
+	uint32_t tex_ = 0u;
 
-	//浮遊ギミックの媒介変数
-	float idelArmAngleMax_ = 0.0f;
+	//ワールド変換データ
+	//Base
+	WorldTransform worldTransform_;
 
-	uint16_t frame_ = 0;
-	uint32_t floatingCycle_ = 0;
-	float floatingAmplitude_ = 0;
-
-	enum class Behavior {
-		kRoot,//通常状態
-		kAttack,//攻撃中
-		kJump,//ジャンプ中
-	};
-	Behavior behavior_ = Behavior::kRoot;
-
-	//次のふるまいリクエスト
-	std::optional<Behavior> behaviorRequest_ = std::nullopt;
-
-	int isAttack = false;
-	int isJump = false;
-	int afterAttackStay = 20;
+	//デスフラグ
+	bool isDead_ = false;
 
 public:
 	Player();
 	~Player();
-	void Initialize(const std::vector<Model*>& models) override;
-	void Update() override;
-	void Draw(const ViewProjection& viewProjection) override;
+	//初期化
+	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
+	//更新
+	void Update(const ViewProjection viewProjection);
+	//描画
+	void Draw(const ViewProjection& viewProjection);
+	void DrawUI();
 
-	const WorldTransform& GetWorldTransform() { return worldTransformBase_; }
+	//セッター
+	void SetParent(const WorldTransform* parent);
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	void SetModels(const std::vector<Model*>& models) { models_ = models; }
+	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
 
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	//ゲッター
+	Vector3 GetWorldPosition();
+	const WorldTransform& GetWorldTransform() { return worldTransform_; }
+	const ViewProjection* GetViewProjection() { return viewProjection_; }
+	bool IsDead() { return isDead_; }
 
-	//浮遊ギミック初期化
-	void InitializeFloatingGimmick();
-
-	//浮遊ギミック更新
-	void UpdateFloatingGimmick();
-
-	//通常行動初期化
-	void BehaviorRootInitialize();
-	//通常行動更新
-	void BehaviorRootUpdate();
-
-	//攻撃行動初期化
-	void BehaviorAttackInitialize();
-	//攻撃行動更新
-	void BehaviorAttackUpdate();
-
-	//ジャンプ行動初期化
-	void BehaviorJumpInitialize();
-	//ジャンプ行動更新
-	void BehaviorJumpUpdate();
-
-	//調整項目の適用
-	void ApplyGlobalVariables();
-
-	void Move(float y);
 };

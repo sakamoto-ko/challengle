@@ -11,13 +11,11 @@ private:
 	// スプライト
 	std::unique_ptr<Sprite> transition_[2];
 
-	Vector2 leftMove = {};
-	Vector2 rightMove = {};
+	Vector2 upMove = {};
+	Vector2 downMove = {};
 
 	Vector2 velocity = {};
 	Vector2 accelelate = {};
-
-	int32_t boundCount_ = 0;
 
 	float addAccelelate = 0.03f;
 
@@ -25,6 +23,7 @@ private:
 
 	bool isFadeIn_ = false;
 	bool isFadeOut_ = false;
+	bool isNext = false;
 
 	bool isSceneChange = false;
 

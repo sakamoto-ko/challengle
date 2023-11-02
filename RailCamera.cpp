@@ -20,7 +20,7 @@ void RailCamera::Initialize(WorldTransform worldTransform, Vector3 radian) {
 	//引数で回転角[ラジアン]を受け取ってワールドトランスフォームに設定
 	worldTransform_.rotation_ = radian;
 
-	worldTransform_.translation_ = { -0.1f,-0.4f,3.5f };
+	//worldTransform_.translation_ = { -0.1f,-0.4f,3.5f };
 	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
 
 	//ビュープロジェクションの初期化
@@ -33,10 +33,6 @@ void RailCamera::Initialize(WorldTransform worldTransform, Vector3 radian) {
 //更新
 void RailCamera::Update() {
 	//XINPUT_STATE joyState;
-
-	worldTransform_.translation_ = Add(worldTransform_.translation_, kMoveSpeed);
-	
-	worldTransform_.rotation_ = Add(kRotSpeed,worldTransform_.rotation_ );
 
 	//ワールドトランスフォームのワールド座標再計算
 	worldTransform_.UpdateMatrix();

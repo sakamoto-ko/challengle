@@ -35,6 +35,8 @@ void PlayerBullet::Initialize(const std::vector<Model*>& models, const std::vect
 
 	worldTransform_.translation_ = position;
 
+	worldTransform_.scale_ = { 0.5f,0.2f,1.0f };
+
 	//引数で受け取った速度をメンバ変数に代入
 	velocity_ = velocity;
 	velocity_.y = 0.0f;
@@ -76,4 +78,18 @@ void PlayerBullet::Update() {
 // 描画
 void PlayerBullet::Draw(const ViewProjection& viewProjection) {
 	models_[0]->Draw(worldTransform_, viewProjection, tex_);
+}
+
+void PlayerBullet::Reset()
+{
+	tex_ = textures_[1];
+	isDead_ = true;
+
+	worldTransform_.Initialize();
+
+	worldTransform_.translation_ = { 0.0f,0.0f,0.0f };
+	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
+	worldTransform_.scale_ = { 0.0f,0.0f,0.0f };
+
+	worldTransform_.UpdateMatrix();
 }

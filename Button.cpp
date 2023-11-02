@@ -18,7 +18,7 @@ void Button::Update() {
 	Gamepad::Input();
 }
 
-bool Button::isTrigger() {
+bool Button::isTriggerSpace() {
 	if (Gamepad::Pushed(Gamepad::Button::A)) {
 		return true;
 	}
@@ -29,7 +29,7 @@ bool Button::isTrigger() {
 	return false;
 }
 
-bool Button::isPress() {
+bool Button::isPressSpace() {
 	if (Gamepad::LongPush(Gamepad::Button::A)) {
 		return true;
 	}

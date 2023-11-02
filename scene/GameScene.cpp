@@ -1,53 +1,218 @@
 #include "GameScene.h"
-#include "TextureManager.h"
+
 #include <cassert>
-#include "ImGuiManager.h"
-#include "PrimitiveDrawer.h"
-#include "AxisIndicator.h"
+#include <fstream>
+#include <sstream>
+#include <memory>
+#include <list>
+
 #include "MyMath.h"
-#include "GlobalVariables.h"
+
+//void GameScene::CheckAllCollisions() {
+//	//判定対象AとBの座標
+//	Vector3 posA, posB;
+//#pragma region 自キャラと敵弾の当たり判定
+//	//自キャラの座標
+//	posA = player_->GetWorldPosition();
+//
+//	//自キャラと敵弾全ての当たり判定
+//	for (EnemyBullet* enemyBullet : enemyBullets_) {
+//		//敵弾の座標
+//		posB = enemyBullet->GetWorldPosition();
+//
+//		if (!isPlayerDamage) {
+//			//座標AとBの距離を求める
+//			//球と球の交差判定
+//			if (posA.z + 5.0f >= posB.z && posA.z <= posB.z + 5.0f) {
+//				if (posA.y + 5.0f >= posB.y && posA.y <= posB.y + 5.0f) {
+//					if (posA.x + 5.0f >= posB.x && posA.x <= posB.x + 5.0f) {
+//						//自キャラの衝突時コールバックを呼び出す
+//						player_->OnCollision();
+//						//敵弾の衝突時コールバックを呼び出す
+//						enemyBullet->OnCollision();
+//					}
+//				}
+//			}
+//		}
+//	}
+//#pragma endregion
+//
+//#pragma region 自弾と敵キャラの当たり判定
+//	//自弾の座標
+//	for (PlayerBullet* playerBullet : playerBullets_) {
+//		posA = playerBullet->GetWorldPosition();
+//
+//		//自弾と敵キャラ全ての当たり判定
+//		//敵キャラの座標
+//		posB = enemy_->GetWorldPosition();
+//
+//		//座標AとBの距離を求める
+//		//球と球の交差判定
+//		if (posA.z + 5.0f >= posB.z && posA.z <= posB.z + 5.0f) {
+//			if (posA.y + 5.0f >= posB.y && posA.y <= posB.y + 5.0f) {
+//				if (posA.x + 5.0f >= posB.x && posA.x <= posB.x + 5.0f) {
+//					//自弾の衝突時コールバックを呼び出す
+//					playerBullet->OnCollision();
+//					//敵キャラの衝突時コールバックを呼び出す
+//					enemy_->OnCollision();
+//					if (enemy_->IsDead()) {
+//					}
+//				}
+//			}
+//		}
+//	}
+//#pragma endregion
+//}
+
+
+//void GameScene::AllReset()
+//{
+//	player_->Reset();
+//
+//	enemy_->Reset();
+//
+//	for (PlayerBullet* playerBullet : playerBullets_) {
+//		playerBullet->Reset();
+//	}
+//
+//	for (EnemyBullet* enemyBullet : enemyBullets_) {
+//		enemyBullet->Reset();
+//	}
+//
+//	isPlayerDamage = false;
+//}
 
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {}
 
-void GameScene::Initialize() {
+//void GameScene::TitleSceneInitialize() {
+//	pressButtonWaitCount = 0;
+//}
+//void GameScene::TitleSceneUpdate() {
+//	nowScene = TITLE;
+//	if (++pressButtonWaitCount >= 20) {
+//		if (button->isTrigger() || input_->TriggerKey(DIK_SPACE)) {
+//			if (!transition_->GetIsChangeScene()) {
+//				transition_->SetIsChangeScene(true);
+//				transition_->Reset();
+//				nextScene_ = GAME;
+//				pressButtonWaitCount = 0;
+//			}
+//		}
+//	}
+//}
+//void GameScene::TitleSceneDraw() {}
+//void GameScene::TitleSceneDrawUI() {
+//	backgroundSprites_[0]->Draw();
+//	setumeiSprites_[0]->Draw();
+//}
 
+void GameScene::GameSceneInitialize() {
+	//カメラの初期化
+	camera_ = std::make_unique<RailCamera>();
+	camera_->Initialize(worldTransform_, { 0.0f,0.0f,0.0f });
+
+	//スカイドームの初期化
+	skydome_ = std::make_unique<Skydome>();
+	skydome_->Initialize(modelSkydome_.get());
+
+	//グラウンドの初期化
+	ground_ = std::make_unique<Ground>();
+	ground_->Initialize(modelGround_.get());
+
+	//プレイヤーの初期化
+	std::vector<uint32_t> playerTextures{playerTex_};
+	std::vector<Model*> playerModels{playerModel_.get()};
+	player_ = std::make_unique<Player>();
+	player_->Initialize(playerModels, playerTextures);
+	player_->SetGameScene(this);
+	player_->SetViewProjection(&viewProjection_);
+
+}
+void GameScene::GameSceneUpdate() {
+	//ビュープロジェクション行列の更新と転送
+	camera_->Update();
+	viewProjection_.matView = camera_->GetViewProjection().matView;
+	viewProjection_.matProjection = camera_->GetViewProjection().matProjection;
+	viewProjection_.TransferMatrix();
+
+	//スカイドームの更新
+	skydome_->Update();
+
+	//グラウンドの更新
+	ground_->Update();
+
+	//プレイヤーの更新
+	player_->Update(viewProjection_);
+
+}
+void GameScene::GameSceneDraw() {
+	//スカイドームの描画
+	//skydome_->Draw(viewProjection_);
+
+	//グラウンドの更新
+	//ground_->Draw(viewProjection_);
+
+	//プレイヤーの描画
+	player_->Draw(viewProjection_);
+}
+void GameScene::GameSceneDrawUI() {
+}
+
+//void GameScene::ClearSceneInitialize() {
+//	pressButtonWaitCount = 0;
+//}
+//void GameScene::ClearSceneUpdate() {
+//	nowScene = CLEAR;
+//
+//	if (++pressButtonWaitCount >= 20) {
+//		if (button->isTrigger() || input_->TriggerKey(DIK_SPACE)) {
+//			if (!transition_->GetIsChangeScene()) {
+//				transition_->SetIsChangeScene(true);
+//				transition_->Reset();
+//				nextScene_ = TITLE;
+//				pressButtonWaitCount = 0;
+//			}
+//		}
+//	}
+//}
+//void GameScene::ClearSceneDraw() {}
+//void GameScene::ClearSceneDrawUI() {
+//	backgroundSprites_[1]->Draw();
+//	setumeiSprites_[0]->Draw();
+//}
+
+//void GameScene::GameoverSceneInitialize() {
+//	pressButtonWaitCount = 0;
+//}
+//void GameScene::GameoverSceneUpdate() {
+//	nowScene = GAMEOVER;
+//
+//	if (++pressButtonWaitCount >= 20) {
+//		if (button->isTrigger() || input_->TriggerKey(DIK_SPACE)) {
+//			if (!transition_->GetIsChangeScene()) {
+//				transition_->SetIsChangeScene(true);
+//				transition_->Reset();
+//				nextScene_ = TITLE;
+//				pressButtonWaitCount = 0;
+//			}
+//		}
+//	}
+//}
+//void GameScene::GameoverSceneDraw() {}
+//void GameScene::GameoverSceneDrawUI() {
+//	backgroundSprites_[2]->Draw();
+//	setumeiSprites_[0]->Draw();
+//}
+
+void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
+	audio_ = Audio::GetInstance();
 
-	//ファイル名を指定してテクスチャを読み込む
-	//textureHandle_ = TextureManager::Load("mario.jpg");
-
-	//3Dモデルの生成
-	model_.reset(Model::Create());
-
-	modelSkydome_.reset(Model::CreateFromOBJ("skydome", true));
-	modelGround_.reset(Model::CreateFromOBJ("ground", true));
-
-	//自キャラモデル
-	modelFace_.reset(Model::CreateFromOBJ("face", true));
-	modelBody_.reset(Model::CreateFromOBJ("body", true));
-	modelL_arm_.reset(Model::CreateFromOBJ("left", true));
-	modelR_arm_.reset(Model::CreateFromOBJ("right", true));
-	modelWeapon_.reset(Model::CreateFromOBJ("hammer", true));
-	std::vector<Model*>playerModels = {
-		modelFace_.get(),
-		modelBody_.get(),
-		modelL_arm_.get(),
-		modelR_arm_.get(),
-		modelWeapon_.get()
-	};
-
-	//敵キャラモデル
-	modelEnemyBody_.reset(Model::CreateFromOBJ("enemy_body", true));
-	modelEnemyL_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
-	modelEnemyR_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
-	std::vector<Model*>enemyModels = {
-		modelEnemyBody_.get(),
-		modelEnemyL_arm_.get(),
-		modelEnemyR_arm_.get()
-	};
+	// キー入力 初期化
+	button->Initialize();
 
 	//ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -56,74 +221,38 @@ void GameScene::Initialize() {
 	viewProjection_.farZ = 10000.0f;
 	viewProjection_.Initialize();
 
-	//デバッグカメラの生成
-	debugCamera_ = new DebugCamera(WinApp::kWindowHeight, WinApp::kWindowWidth);
+	//テクスチャ
+	playerTex_ = TextureManager::Load("blue.png");
+	whiteTex_ = TextureManager::Load("white1x1.png");
+
+	//スプライト
+
+	//3Dモデル
+	modelSkydome_.reset(Model::CreateFromOBJ("skydome", true));
+	modelGround_.reset(Model::CreateFromOBJ("ground", true));
+	playerModel_.reset(Model::Create());
 
 	//軸方向の表示を有効にする
 	AxisIndicator::GetInstance()->SetVisible(true);
 	//軸方向が参照するビュープロジェクションを指定する(アドレスなし)
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
 
-	skydome_ = std::make_unique<Skydome>();
-	skydome_->Initialize(modelSkydome_.get());
-
-	ground_ = std::make_unique<Ground>();
-	ground_->Initialize(modelGround_.get());
-
-	player_ = std::make_unique<Player>();
-	player_->Initialize(playerModels);
-
-	enemy_ = std::make_unique<Enemy>();
-	enemy_->Initialize(enemyModels);
-
-	followCamera_ = std::make_unique<FollowCamera>();
-	followCamera_->Initialize();
-
-	//カメラのビュープロジェクションを自キャラにコピー
-	player_->SetViewPRojection(&followCamera_->GetViewProjection());
-	//カメラのビュープロジェクションを敵キャラにコピー
-	enemy_->SetViewPRojection(&followCamera_->GetViewProjection());
-
-	//自キャラのワールドトランスフォームを追従カメラにセット
-	followCamera_->SetTarget(&player_->GetWorldTransform());
+	GameSceneInitialize();
 }
 
 void GameScene::Update() {
-	//デバッグカメラの更新
+
+	//キー入力の更新
+	button->Update();
+	GameSceneUpdate();
+
 #ifdef _DEBUG
-	if (input_->TriggerKey(DIK_RETURN)) {
-		if (isDebugCameraActive_ != 1) {
-			isDebugCameraActive_ = true;
-		}
-		else {
-			isDebugCameraActive_ = false;
-		}
-	}
-#endif
 
-	//ゲームパッドの状態を得る変数(XINPUT)
-	//XINPUT_STATE joyState;
+	ImGui::Begin("window");
+	//ImGui::Text("scene %d", sceneCount_);
+	ImGui::End();
 
-	skydome_->Update();
-	ground_->Update();
-
-	player_->Update();
-
-	enemy_->Update();
-
-	if (isDebugCameraActive_) {
-		//デバッグカメラの更新
-		debugCamera_->Update();
-		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
-	}
-	else {
-		followCamera_->Update();
-		viewProjection_.matView = followCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
-	}
-	//ビュープロジェクション行列の転送
-	viewProjection_.TransferMatrix();
+#endif // _DEBUG
 }
 
 void GameScene::Draw() {
@@ -153,12 +282,7 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 
-	skydome_->Draw(viewProjection_);
-	ground_->Draw(viewProjection_);
-
-	player_->Draw(viewProjection_);
-
-	enemy_->Draw(viewProjection_);
+	GameSceneDraw();
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
