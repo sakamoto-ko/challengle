@@ -36,8 +36,10 @@ public:
 	void Update();
 
 	//トリガーチェック
-	bool isTriggerSpace();
+	bool isTriggerJump();
+	bool isTriggerAttack();
 
 	//プレスチェック
-	bool isPressSpace();
+	bool isPressJump();
+	bool isPressAttack();
 };

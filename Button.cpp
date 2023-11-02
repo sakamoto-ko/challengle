@@ -18,7 +18,7 @@ void Button::Update() {
 	Gamepad::Input();
 }
 
-bool Button::isTriggerSpace() {
+bool Button::isTriggerJump() {
 	if (Gamepad::Pushed(Gamepad::Button::A)) {
 		return true;
 	}
@@ -28,12 +28,33 @@ bool Button::isTriggerSpace() {
 
 	return false;
 }
+bool Button::isTriggerAttack() {
+	if (Gamepad::Pushed(Gamepad::Button::RIGHT_SHOULDER)) {
+		return true;
+	}
+	else if (input_->TriggerKey(DIK_RETURN)) {
+		return true;
+	}
 
-bool Button::isPressSpace() {
+	return false;
+}
+
+bool Button::isPressJump() {
 	if (Gamepad::LongPush(Gamepad::Button::A)) {
 		return true;
 	}
 	else if (input_->PushKey(DIK_SPACE)) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Button::isPressAttack() {
+	if (Gamepad::LongPush(Gamepad::Button::RIGHT_SHOULDER)) {
+		return true;
+	}
+	else if (input_->PushKey(DIK_RETURN)) {
 		return true;
 	}
 

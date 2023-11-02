@@ -151,13 +151,14 @@ void Player::BehaviorRootUpdate() {
 
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 		//Rトリガーを押していたら
-		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+		if (button->isTriggerAttack()) {
 			//isAttack = true;
 		}
 
 		//ジャンプボタンを押したら
-		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
-			isJump = true;
+		if (button->isTriggerJump()) {
+			//isJump = true;
+			behaviorRequest_ = Behavior::kJump;
 		}
 
 		Move();
@@ -171,11 +172,6 @@ void Player::BehaviorRootUpdate() {
 				behaviorRequest_ = Behavior::kAttack;
 			}
 		}*/
-
-		//ジャンプ更新
-		if (isJump) {
-			behaviorRequest_ = Behavior::kJump;
-		}
 	}
 
 	worldTransform_.UpdateMatrix();
@@ -229,7 +225,7 @@ void Player::BehaviorJumpUpdate() {
 		if (worldTransform_.translation_.y <= 3.0f) {
 			worldTransform_.translation_.y = 3.0f;
 			//ジャンプ終了
-			isJump = false;
+			//isJump = false;
 			behaviorRequest_ = Behavior::kRoot;
 		}
 	}
