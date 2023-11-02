@@ -40,6 +40,9 @@ private:
 	//Base
 	WorldTransform worldTransform_;
 
+	//移動
+	Vector3 velocity_ = {};
+
 	//デスフラグ
 	bool isDead_ = false;
 

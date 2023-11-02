@@ -37,13 +37,15 @@ void Player::Move() {
 	//移動量
 	velocity_ = {
 		(float)joyState.Gamepad.sThumbLX / SHRT_MAX,
-		0.0f,
-		(float)joyState.Gamepad.sThumbLY / SHRT_MAX
+		(float)joyState.Gamepad.sThumbLY / SHRT_MAX,
+		0.0f
 	};
 
 	//移動量に速さを反映
 	velocity_ = Multiply(speed, Normalize(velocity_));
 
+	//移動
+	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
 }
 
 // 初期化
