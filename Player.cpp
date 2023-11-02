@@ -32,12 +32,18 @@ void Player::SetParent(const WorldTransform* parent) {
 void Player::Move() {
 	XINPUT_STATE joyState;
 
-	if (input_->GetJoystickState(0, joyState)) {
-		if ((float)joyState.Gamepad.sThumbLY / SHRT_MAX) {
-		}
-		else if ((float)joyState.Gamepad.sThumbLY / SHRT_MAX) {
-		}
-	}
+	//速さ
+	const float speed = 0.3f;
+	//移動量
+	velocity_ = {
+		(float)joyState.Gamepad.sThumbLX / SHRT_MAX,
+		0.0f,
+		(float)joyState.Gamepad.sThumbLY / SHRT_MAX
+	};
+
+	//移動量に速さを反映
+	velocity_ = Multiply(speed, Normalize(velocity_));
+
 }
 
 // 初期化
