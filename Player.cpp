@@ -144,6 +144,57 @@ void Player::Draw(const ViewProjection& viewProjection) {
 //UI描画
 void Player::DrawUI() {}
 
+//通常行動更新
+void Player::BehaviorRootUpdate() {
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		//Rトリガーを押していたら
+		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+			//isAttack = true;
+		}
+
+		//ジャンプボタンを押したら
+		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+			isJump = true;
+		}
+
+		Move();
+
+		//攻撃更新
+		/*if (isAttack) {
+			if (worldTransformWeapon_.rotation_.x <= 0.6f) {
+				worldTransformWeapon_.rotation_.x += 0.1f;
+			}
+			else if (worldTransformWeapon_.rotation_.x >= 0.6f) {
+				behaviorRequest_ = Behavior::kAttack;
+			}
+		}*/
+
+		//ジャンプ更新
+		if (isJump) {
+			behaviorRequest_ = Behavior::kJump;
+		}
+	}
+
+	worldTransform_.UpdateMatrix();
+}
+
+//攻撃行動更新
+void Player::BehaviorAttackUpdate() {
+	/*if (worldTransformWeapon_.rotation_.x >= -1.5f) {
+		worldTransformWeapon_.rotation_.x -= 0.1f;
+	}
+	else if (worldTransformWeapon_.rotation_.x <= -1.5f) {
+		afterAttackStay--;
+		if (afterAttackStay <= 0) {
+			isAttack = false;
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	}*/
+}
+
 //ジャンプ行動初期化
 void Player::BehaviorJumpInitialize() {
 	worldTransform_.translation_.y = 0.0f;
