@@ -54,6 +54,9 @@ public:
 	void Draw(const ViewProjection& viewProjection);
 	void DrawUI();
 
+	//移動
+	void Move();
+
 	//セッター
 	void SetParent(const WorldTransform* parent);
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }

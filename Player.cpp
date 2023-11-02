@@ -29,6 +29,16 @@ void Player::SetParent(const WorldTransform* parent) {
 	//親子関係を結ぶ
 	worldTransform_.parent_ = parent;
 }
+void Player::Move() {
+	XINPUT_STATE joyState;
+
+	if (input_->GetJoystickState(0, joyState)) {
+		if ((float)joyState.Gamepad.sThumbLY / SHRT_MAX) {
+		}
+		else if ((float)joyState.Gamepad.sThumbLY / SHRT_MAX) {
+		}
+	}
+}
 
 // 初期化
 void Player::Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures) {
