@@ -57,6 +57,17 @@ private:
 	//次のふるまいリクエスト
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
+	bool isJump = false;
+
+	//ジャンプ初速
+	const float kJumpFirstSpeed = 0.1f;
+
+	//重力加速度
+	const float kGravityAcceleration = 0.05f;
+
+	//加速度ベクトル
+	Vector3 accelerationVector = {};
+
 public:
 	Player();
 	~Player();

@@ -36,11 +36,7 @@ void Player::Move() {
 	const float speed = 0.1f;
 	//移動量
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		velocity_ = {
-			(float)joyState.Gamepad.sThumbLX / SHRT_MAX,
-			0.0f,
-			0.0f
-		};
+		velocity_.x = (float)joyState.Gamepad.sThumbLX / SHRT_MAX;
 	}
 
 	//移動量に速さを反映
@@ -129,6 +125,10 @@ void Player::Update(const ViewProjection viewProjection) {
 		}
 		ImGui::TreePop();
 	}
+	if (ImGui::TreeNode("behavior")) {
+		ImGui::Text("behavior %d", behavior_);
+		ImGui::TreePop();
+	}
 	ImGui::End();
 
 #endif // _DEBUG
@@ -144,6 +144,10 @@ void Player::Draw(const ViewProjection& viewProjection) {
 //UI描画
 void Player::DrawUI() {}
 
+//通常行動初期化
+void Player::BehaviorRootInitialize() {
+	//worldTransformWeapon_.rotation_.x = -1.5f;
+}
 //通常行動更新
 void Player::BehaviorRootUpdate() {
 	//ゲームパッドの状態を得る変数(XINPUT)
@@ -153,18 +157,7 @@ void Player::BehaviorRootUpdate() {
 		//Rトリガーを押していたら
 		if (button->isTriggerAttack()) {
 			//isAttack = true;
-		}
-
-		//ジャンプボタンを押したら
-		if (button->isTriggerJump()) {
-			//isJump = true;
-			behaviorRequest_ = Behavior::kJump;
-		}
-
-		Move();
-
-		//攻撃更新
-		/*if (isAttack) {
+			/*if (isAttack) {
 			if (worldTransformWeapon_.rotation_.x <= 0.6f) {
 				worldTransformWeapon_.rotation_.x += 0.1f;
 			}
@@ -172,11 +165,28 @@ void Player::BehaviorRootUpdate() {
 				behaviorRequest_ = Behavior::kAttack;
 			}
 		}*/
+		}
+
+		//ジャンプボタンを押したら
+		if (button->isTriggerJump()) {
+			if (!isJump) {
+				isJump = true;
+			}
+		}
+		if (isJump) {
+			behaviorRequest_ = Behavior::kJump;
+		}
+
+		Move();
 	}
 
 	worldTransform_.UpdateMatrix();
 }
 
+//攻撃行動初期化
+void Player::BehaviorAttackInitialize() {
+	//afterAttackStay = 20;
+}
 //攻撃行動更新
 void Player::BehaviorAttackUpdate() {
 	/*if (worldTransformWeapon_.rotation_.x >= -1.5f) {
@@ -193,42 +203,46 @@ void Player::BehaviorAttackUpdate() {
 
 //ジャンプ行動初期化
 void Player::BehaviorJumpInitialize() {
-	worldTransform_.translation_.y = 0.0f;
-
-	//ジャンプ初速
-	const float kJumpFirstSpeed = 0.6f;
+	//加速度ベクトル
+	accelerationVector = { 0.0f,-kGravityAcceleration,0.0f };
 	//ジャンプ初速を与える
 	velocity_.y = kJumpFirstSpeed;
+
+	worldTransform_.translation_.y = 0.0f;
 }
 //ジャンプ行動更新
 void Player::BehaviorJumpUpdate() {
 
-	//ゲームパッドの状態を得る変数(XINPUT)
-	XINPUT_STATE joyState;
-
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-
-		//移動量に速さを反映
-		velocity_.x = 0.3f * sqrtf(velocity_.x *velocity_.x);
-		velocity_.z = 0.3f * sqrtf(velocity_.z * velocity_.z);
-
+	//着地
+	if (worldTransform_.translation_.y <= 0.0f) {
+		worldTransform_.translation_.y = 0.0f;
+		//ジャンプ終了
+		isJump = false;
+		velocity_.y = 0.0f;
+		worldTransform_.translation_.y = 0.0f;
+		behaviorRequest_ = Behavior::kRoot;
+	}
+	else {
+		//加速する
+		velocity_ = Add(velocity_, accelerationVector);
 		//移動
 		worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
-		//重力加速度
-		const float kGravityAcceleration = 0.05f;
-		//加速度ベクトル
-		Vector3 accelerationVector = { 0.0f,-kGravityAcceleration,0.0f };
-		//加速する
-		velocity_.y += accelerationVector.y;
-
-		//着地
-		if (worldTransform_.translation_.y <= 3.0f) {
-			worldTransform_.translation_.y = 3.0f;
-			//ジャンプ終了
-			//isJump = false;
-			behaviorRequest_ = Behavior::kRoot;
-		}
 	}
+
+#ifdef _DEBUG
+
+	ImGui::Begin("window");
+	if (ImGui::TreeNode("jump")) {
+		ImGui::DragFloat3("translation", &worldTransform_.translation_.x, 0.01f);
+		ImGui::DragFloat3("rotate", &worldTransform_.rotation_.x, 0.01f);
+		ImGui::DragFloat3("scale", &worldTransform_.scale_.x, 0.01f);
+		ImGui::DragFloat3("velocity", &velocity_.x, 0.01f);
+		ImGui::DragFloat3("acceleration", &accelerationVector.x, 0.01f);
+		ImGui::TreePop();
+	}
+	ImGui::End();
+
+#endif // _DEBUG
 
 	worldTransform_.UpdateMatrix();
 }
