@@ -46,6 +46,17 @@ private:
 	//デスフラグ
 	bool isDead_ = false;
 
+	//Behavior
+	enum class Behavior {
+		kRoot,//通常状態
+		kAttack,//攻撃中
+		kJump,//ジャンプ中
+	};
+	Behavior behavior_ = Behavior::kRoot;
+
+	//次のふるまいリクエスト
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
+
 public:
 	Player();
 	~Player();
@@ -59,6 +70,22 @@ public:
 
 	//移動
 	void Move();
+
+	//Behavior
+	//通常行動初期化
+	void BehaviorRootInitialize();
+	//通常行動更新
+	void BehaviorRootUpdate();
+
+	//攻撃行動初期化
+	void BehaviorAttackInitialize();
+	//攻撃行動更新
+	void BehaviorAttackUpdate();
+
+	//ジャンプ行動初期化
+	void BehaviorJumpInitialize();
+	//ジャンプ行動更新
+	void BehaviorJumpUpdate();
 
 	//セッター
 	void SetParent(const WorldTransform* parent);

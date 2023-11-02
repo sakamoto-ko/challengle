@@ -81,6 +81,42 @@ void Player::Update(const ViewProjection viewProjection) {
 
 	Move();
 
+	if (behaviorRequest_) {
+		//振る舞いを変更する
+		behavior_ = behaviorRequest_.value();
+		//各振る舞い事の初期化を実行
+		switch (behavior_) {
+		case Player::Behavior::kRoot:
+		default:
+			BehaviorRootInitialize();
+			break;
+		case Player::Behavior::kAttack:
+			BehaviorAttackInitialize();
+			break;
+		case Player::Behavior::kJump:
+			BehaviorJumpInitialize();
+			break;
+		}
+		//振る舞いリクエストをリセット
+		behaviorRequest_ = std::nullopt;
+	}
+
+	switch (behavior_) {
+		//通常行動
+	case Behavior::kRoot:
+	default:
+		BehaviorRootUpdate();
+		break;
+		//攻撃行動
+	case Behavior::kAttack:
+		BehaviorAttackUpdate();
+		break;
+		//ジャンプ行動
+	case Behavior::kJump:
+		BehaviorJumpUpdate();
+		break;
+	}
+
 #ifdef _DEBUG
 
 	ImGui::Begin("window");
@@ -107,3 +143,45 @@ void Player::Draw(const ViewProjection& viewProjection) {
 
 //UI描画
 void Player::DrawUI() {}
+
+//ジャンプ行動初期化
+void Player::BehaviorJumpInitialize() {
+	worldTransform_.translation_.y = 0.0f;
+
+	//ジャンプ初速
+	const float kJumpFirstSpeed = 0.6f;
+	//ジャンプ初速を与える
+	velocity_.y = kJumpFirstSpeed;
+}
+//ジャンプ行動更新
+void Player::BehaviorJumpUpdate() {
+
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+
+		//移動量に速さを反映
+		velocity_.x = 0.3f * sqrtf(velocity_.x *velocity_.x);
+		velocity_.z = 0.3f * sqrtf(velocity_.z * velocity_.z);
+
+		//移動
+		worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
+		//重力加速度
+		const float kGravityAcceleration = 0.05f;
+		//加速度ベクトル
+		Vector3 accelerationVector = { 0.0f,-kGravityAcceleration,0.0f };
+		//加速する
+		velocity_.y += accelerationVector.y;
+
+		//着地
+		if (worldTransform_.translation_.y <= 3.0f) {
+			worldTransform_.translation_.y = 3.0f;
+			//ジャンプ終了
+			isJump = false;
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	}
+
+	worldTransform_.UpdateMatrix();
+}
