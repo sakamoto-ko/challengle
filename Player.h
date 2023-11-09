@@ -1,16 +1,5 @@
 #pragma once
-#include "Audio.h"
-#include "AxisIndicator.h"
-#include "DebugCamera.h"
-#include "DirectXCommon.h"
-#include "ImGuiManager.h"
-#include "Input.h"
-#include "Model.h"
-#include "SafeDelete.h"
-#include "Sprite.h"
-#include "TextureManager.h"
-#include "ViewProjection.h"
-#include "WorldTransform.h"
+#include "PlayerBullet.h"
 #include "Button.h"
 #include "scene.h"
 
@@ -31,10 +20,13 @@ private:
 
 	//モデル
 	std::vector<Model*> models_;
+	std::vector<Model*> bulletModels_;
 
 	//テクスチャハンドル
 	std::vector<uint32_t> textures_;
 	uint32_t tex_ = 0u;
+	std::vector<uint32_t> bulletTextures_;
+	uint32_t bulletTex_ = 0u;
 
 	//ワールド変換データ
 	//Base
@@ -49,7 +41,7 @@ private:
 	//Behavior
 	enum class Behavior {
 		kRoot,//通常状態
-		kAttack,//攻撃中
+		//kAttack,//攻撃中
 		kJump,//ジャンプ中
 	};
 	Behavior behavior_ = Behavior::kRoot;
@@ -57,16 +49,24 @@ private:
 	//次のふるまいリクエスト
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
+	bool isAttack = false;
 	bool isJump = false;
+	bool isMove = false;
 
 	//ジャンプ初速
 	const float kJumpFirstSpeed = 0.4f;
-
 	//重力加速度
 	const float kGravityAcceleration = 0.05f;
-
 	//加速度ベクトル
 	Vector3 accelerationVector = {};
+
+	int playerBulletNum_ = 0;
+	int playerBulletMax_ = 1;
+
+	int shotFinishTime = 0;
+	int moveFinishTime = 0;
+
+	bool tempo_ = false;
 
 public:
 	Player();
@@ -79,8 +79,13 @@ public:
 	void Draw(const ViewProjection& viewProjection);
 	void DrawUI();
 
+	//入力
+	void Input();
+
 	//移動
 	void Move();
+	//弾発射
+	void Shot();
 
 	//Behavior
 	//通常行動初期化
@@ -89,9 +94,9 @@ public:
 	void BehaviorRootUpdate();
 
 	//攻撃行動初期化
-	void BehaviorAttackInitialize();
+	//void BehaviorAttackInitialize();
 	//攻撃行動更新
-	void BehaviorAttackUpdate();
+	//void BehaviorAttackUpdate();
 
 	//ジャンプ行動初期化
 	void BehaviorJumpInitialize();
@@ -104,6 +109,7 @@ public:
 	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 	void SetModels(const std::vector<Model*>& models) { models_ = models; }
 	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
+	void SetTempo(bool tempo) { tempo_ = tempo; }
 
 	//ゲッター
 	Vector3 GetWorldPosition();
@@ -111,4 +117,9 @@ public:
 	const ViewProjection* GetViewProjection() { return viewProjection_; }
 	bool IsDead() { return isDead_; }
 
+	//衝突を検出したら呼び出されるコールバック関数	
+	void OnCollision();
+
+	//リセット
+	void Reset();
 };

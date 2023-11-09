@@ -35,11 +35,10 @@ void PlayerBullet::Initialize(const std::vector<Model*>& models, const std::vect
 
 	worldTransform_.translation_ = position;
 
-	worldTransform_.scale_ = { 0.5f,0.2f,1.0f };
+	worldTransform_.scale_ = { 0.2f,0.2f,0.2f };
 
 	//引数で受け取った速度をメンバ変数に代入
 	velocity_ = velocity;
-	velocity_.y = 0.0f;
 	velocity_.z = 0.0f;
 }
 
@@ -67,12 +66,13 @@ void PlayerBullet::Update() {
 
 	//時間経過でデス
 	if (--deathTimer_ < ~0) {
-		//isDead_ = true;
-	}
-	//画面外に出たらデス
-	if (worldTransform_.translation_.x >= 50.0f) {
 		isDead_ = true;
 	}
+	//画面外に出たらデス
+	/*if (worldTransform_.translation_.y > 15.0f ||
+		worldTransform_.translation_.y < -15.0f) {
+		isDead_ = true;
+	}*/
 }
 
 // 描画

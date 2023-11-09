@@ -4,6 +4,7 @@
 #include "RailCamera.h"
 #include "player.h"
 #include "Button.h"
+#include "tempo.h"
 
 /// <summary>
 /// ゲームシーン
@@ -61,6 +62,9 @@ public: // メンバ関数
 
 	void AllReset();
 
+	//自弾の追加
+	void AddPlayerBullet(PlayerBullet* playerBullet);
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -69,6 +73,8 @@ private: // メンバ変数
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
+
+	uint32_t whiteTex_ = 0u;
 
 	// キー入力
 	Button* button = Button::GetInstance();
@@ -95,6 +101,13 @@ private: // メンバ変数
 	std::unique_ptr<Model> playerModel_ = nullptr;
 	uint32_t playerTex_ = 0u;
 
-	uint32_t whiteTex_ = 0u;
+	//自弾
+	std::list<PlayerBullet*> playerBullets_;
+	std::unique_ptr<Model>  playerBulletModel_ = nullptr;
+	uint32_t playerBulletTex_ = 0u;
+	//弾リストを取得
+	const std::list<PlayerBullet*>& GetPlayerBullets() { return playerBullets_; }
 
+	//テンポ
+	std::unique_ptr<tempo> tempo_ = nullptr;
 };

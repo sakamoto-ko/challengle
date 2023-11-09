@@ -29,23 +29,6 @@ void Player::SetParent(const WorldTransform* parent) {
 	//親子関係を結ぶ
 	worldTransform_.parent_ = parent;
 }
-void Player::Move() {
-	XINPUT_STATE joyState;
-
-	//速さ
-	const float speed = 0.1f;
-	//移動量
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		velocity_.x = (float)joyState.Gamepad.sThumbLX / SHRT_MAX;
-	}
-
-	//移動量に速さを反映
-	velocity_ = Multiply(speed, Normalize(velocity_));
-
-	//移動
-	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
-	worldTransform_.UpdateMatrix();
-}
 
 // 初期化
 void Player::Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures) {
@@ -57,7 +40,10 @@ void Player::Initialize(const std::vector<Model*>& models, const std::vector<uin
 
 	SetModels(models);
 	SetTextures(textures);
+	bulletTextures_ = textures;
+	bulletModels_ = models;
 	tex_ = textures_[0];
+	bulletTex_ = textures_[0];
 
 	//base
 	worldTransform_.Initialize();
@@ -72,6 +58,9 @@ void Player::Update(const ViewProjection viewProjection) {
 
 	assert(gameScene_);
 
+	//XINPUT_STATE joyState;
+	tex_ = textures_[0];
+
 	//キー入力の更新
 	button->Update();
 
@@ -84,9 +73,9 @@ void Player::Update(const ViewProjection viewProjection) {
 		default:
 			BehaviorRootInitialize();
 			break;
-		case Player::Behavior::kAttack:
+		/*case Player::Behavior::kAttack:
 			BehaviorAttackInitialize();
-			break;
+			break;*/
 		case Player::Behavior::kJump:
 			BehaviorJumpInitialize();
 			break;
@@ -102,9 +91,9 @@ void Player::Update(const ViewProjection viewProjection) {
 		BehaviorRootUpdate();
 		break;
 		//攻撃行動
-	case Behavior::kAttack:
+	/*case Behavior::kAttack:
 		BehaviorAttackUpdate();
-		break;
+		break;*/
 		//ジャンプ行動
 	case Behavior::kJump:
 		BehaviorJumpUpdate();
@@ -144,59 +133,32 @@ void Player::DrawUI() {}
 
 //通常行動初期化
 void Player::BehaviorRootInitialize() {
-	//worldTransformWeapon_.rotation_.x = -1.5f;
 }
 //通常行動更新
 void Player::BehaviorRootUpdate() {
-	//ゲームパッドの状態を得る変数(XINPUT)
-	XINPUT_STATE joyState;
 
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		//Rトリガーを押していたら
-		if (button->isTriggerAttack()) {
-			//isAttack = true;
-			/*if (isAttack) {
-			if (worldTransformWeapon_.rotation_.x <= 0.6f) {
-				worldTransformWeapon_.rotation_.x += 0.1f;
-			}
-			else if (worldTransformWeapon_.rotation_.x >= 0.6f) {
-				behaviorRequest_ = Behavior::kAttack;
-			}
-		}*/
-		}
-
-		//ジャンプボタンを押したら
-		if (button->isTriggerJump()) {
-			if (!isJump) {
-				isJump = true;
-			}
-		}
-		if (isJump) {
-			behaviorRequest_ = Behavior::kJump;
-		}
-
+	if(isMove){
 		Move();
+		if (++moveFinishTime >= 3) {
+			isMove = false;
+			velocity_.x = 0.0f;
+			moveFinishTime = 0;
+		}
+	}
+	if (isJump) {
+		behaviorRequest_ = Behavior::kJump;
+	}
+	if (isAttack) {
+		Shot();
+	}
+	if (playerBulletNum_ >= 1) {
+		if (++shotFinishTime >= 30) {
+			playerBulletNum_ = 0;
+			shotFinishTime = 0;
+		}
 	}
 
 	worldTransform_.UpdateMatrix();
-}
-
-//攻撃行動初期化
-void Player::BehaviorAttackInitialize() {
-	//afterAttackStay = 20;
-}
-//攻撃行動更新
-void Player::BehaviorAttackUpdate() {
-	/*if (worldTransformWeapon_.rotation_.x >= -1.5f) {
-		worldTransformWeapon_.rotation_.x -= 0.1f;
-	}
-	else if (worldTransformWeapon_.rotation_.x <= -1.5f) {
-		afterAttackStay--;
-		if (afterAttackStay <= 0) {
-			isAttack = false;
-			behaviorRequest_ = Behavior::kRoot;
-		}
-	}*/
 }
 
 //ジャンプ行動初期化
@@ -210,20 +172,10 @@ void Player::BehaviorJumpInitialize() {
 }
 //ジャンプ行動更新
 void Player::BehaviorJumpUpdate() {
-
-	XINPUT_STATE joyState;
-	//速さ
-	const float speed = 0.1f;
-	//移動量
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		velocity_.x = (float)joyState.Gamepad.sThumbLX / SHRT_MAX;
-	}
-
-	velocity_.x *= speed;
-	velocity_.y += accelerationVector.y;
-
 	//移動
-	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
+	velocity_.y += accelerationVector.y;
+	worldTransform_.translation_.x += velocity_.x;
+	worldTransform_.translation_.y += velocity_.y;
 
 	//着地
 	if (worldTransform_.translation_.y <= 0.0f) {
@@ -251,4 +203,108 @@ void Player::BehaviorJumpUpdate() {
 #endif // _DEBUG
 
 	worldTransform_.UpdateMatrix();
+}
+
+void Player::Move() {
+	//移動
+	worldTransform_.translation_.x += velocity_.x;
+	worldTransform_.translation_.y += velocity_.y;
+
+	worldTransform_.UpdateMatrix();
+}
+
+void Player::Shot() {
+	assert(gameScene_);
+
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+
+	//弾の速度
+	const float kBulletSpeed = 0.06f;
+
+	Vector3 bulletVelocity = { 0.0f, 0.0f ,0.0f };
+
+	//自機から照準オブジェクトへのベクトル
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		bulletVelocity.x = (float)joyState.Gamepad.sThumbRX / SHRT_MAX;
+		bulletVelocity.y = (float)joyState.Gamepad.sThumbRY / SHRT_MAX;
+		bulletVelocity.z = 0.0f;
+	}
+
+	bulletVelocity = Multiply(kBulletSpeed, Normalize(bulletVelocity));
+
+	//弾を生成し、初期化
+	if (bulletVelocity.x != 0.0f || bulletVelocity.y != 0.0f) {
+		playerBulletNum_++;
+		PlayerBullet* newBullet = new PlayerBullet();
+		newBullet->Initialize(
+			bulletModels_, bulletTextures_,
+			{ worldTransform_.matWorld_.m[3][0],worldTransform_.matWorld_.m[3][1],worldTransform_.matWorld_.m[3][2] }
+		, bulletVelocity);
+
+		//弾をゲームシーンに登録する
+		gameScene_->AddPlayerBullet(newBullet);
+	}
+
+	isAttack = false;
+	behaviorRequest_ = Behavior::kRoot;
+}
+
+void Player::Input() {
+	//キー入力の更新
+	button->Update();
+
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		//右を押していたら
+		if (!isMove) {
+			if (button->isTriggerRight()) {
+				velocity_.x = 1.0f * 0.1f;
+				isMove = true;
+			}
+			//左を押していたら
+			else if (button->isTriggerLeft()) {
+				velocity_.x = -1.0f * 0.1f;
+				isMove = true;
+			}
+			else {
+				velocity_.x = 0.0f;
+			}
+		}
+
+		//Rトリガーを押していたら
+		if (button->isTriggerAttack()) {
+			if (playerBulletNum_ < playerBulletMax_) {
+				if (!isAttack) {
+					isAttack = true;
+				}
+			}
+		}
+		//ジャンプボタンを押したら
+		if (button->isTriggerJump()) {
+			if (!isJump) {
+				isJump = true;
+			}
+		}
+	}
+
+	tex_ = textures_[1];
+}
+
+void Player::Reset()
+{
+	tex_ = textures_[0];
+	isDead_ = false;
+
+	worldTransform_.Initialize();
+
+	worldTransform_.translation_ = { 0.0f,0.0f,4.0f };
+	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
+	worldTransform_.scale_ = { 0.0f,0.0f,0.0f };
+
+	worldTransform_.UpdateMatrix();
+
+	velocity_ = { 0.0f,0.0f,0.0f };
 }

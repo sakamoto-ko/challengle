@@ -84,7 +84,18 @@
 
 GameScene::GameScene() {}
 
-GameScene::~GameScene() {}
+GameScene::~GameScene() {
+	//bullet_の開放
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		delete playerBullet;
+	}
+}
+
+//自弾を追加する
+void GameScene::AddPlayerBullet(PlayerBullet* playerBullet) {
+	//リストに登録する
+	playerBullets_.push_back(playerBullet);
+}
 
 //void GameScene::TitleSceneInitialize() {
 //	pressButtonWaitCount = 0;
@@ -122,13 +133,16 @@ void GameScene::GameSceneInitialize() {
 	ground_->Initialize(modelGround_.get());
 
 	//プレイヤーの初期化
-	std::vector<uint32_t> playerTextures{playerTex_};
-	std::vector<Model*> playerModels{playerModel_.get()};
+	std::vector<uint32_t> playerTextures{playerTex_, whiteTex_};
+	std::vector<Model*> playerModels{playerModel_.get(), playerModel_.get()};
 	player_ = std::make_unique<Player>();
 	player_->Initialize(playerModels, playerTextures);
 	player_->SetGameScene(this);
 	player_->SetViewProjection(&viewProjection_);
 
+	//テンポの初期化
+	tempo_ = std::make_unique<tempo>();
+	tempo_->Initialize();
 }
 void GameScene::GameSceneUpdate() {
 	//ビュープロジェクション行列の更新と転送
@@ -143,8 +157,28 @@ void GameScene::GameSceneUpdate() {
 	//グラウンドの更新
 	ground_->Update();
 
+	//テンポの更新
+	tempo_->Update();
+
 	//プレイヤーの更新
 	player_->Update(viewProjection_);
+	if (tempo_->GetTempo()) {
+		player_->Input();
+	}
+
+	//自弾更新
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		playerBullet->Update();
+	}
+	//デスフラグの立った弾を削除
+	playerBullets_.remove_if([](PlayerBullet* playerBullet) {
+		if (playerBullet->IsDead()) {
+			delete playerBullet;
+			return true;
+		}
+		return false;
+		}
+	);
 
 }
 void GameScene::GameSceneDraw() {
@@ -156,6 +190,12 @@ void GameScene::GameSceneDraw() {
 
 	//プレイヤーの描画
 	player_->Draw(viewProjection_);
+
+	//自弾描画
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		playerBullet->Draw(viewProjection_);
+	}
+
 }
 void GameScene::GameSceneDrawUI() {
 }
