@@ -23,7 +23,7 @@ BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle
 }
 } // namespace
 
-const wchar_t WinApp::kWindowClassName[] = L"2145_ChAllAngel";
+const wchar_t WinApp::kWindowClassName[] = L"2247_音符の指揮者";
 
 WinApp* WinApp::GetInstance() {
 	static WinApp instance;

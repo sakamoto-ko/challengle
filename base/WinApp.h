@@ -45,7 +45,7 @@ public: // メンバ関数
 	/// <param name="clientHeight">ウィンドウのクライアント領域の初期高さ</param>
 	/// </summary>
 	void CreateGameWindow(
-	    const wchar_t* title = L"2145_ChAllAngel", UINT windowStyle = WS_OVERLAPPEDWINDOW,
+	    const wchar_t* title = L"2247_音符の指揮者", UINT windowStyle = WS_OVERLAPPEDWINDOW,
 	    int32_t clientWidth = kWindowWidth, int32_t clientHeight = kWindowHeight);
 
 	/// <summary>
