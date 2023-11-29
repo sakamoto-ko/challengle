@@ -150,6 +150,31 @@ void GameScene::GameSceneInitialize() {
 	player_->SetGameScene(this);
 	player_->SetViewProjection(&viewProjection_);
 
+	mapPlayerRightTopX = ((int)player_->GetWorldPosition().x + (int)player_->GetRadius()) / BLOCK_SIZE;
+	mapPlayerRightTopY = ((int)player_->GetWorldPosition().y) / BLOCK_SIZE;
+	mapPlayerRightBottomX = ((int)player_->GetWorldPosition().x + (int)player_->GetRadius()) / BLOCK_SIZE;
+	mapPlayerRightBottomY = ((int)player_->GetWorldPosition().y) / BLOCK_SIZE;
+	mapPlayerLeftTopX = ((int)player_->GetWorldPosition().x) / BLOCK_SIZE;
+	mapPlayerLeftTopY = ((int)player_->GetWorldPosition().y - (int)player_->GetRadius()) / BLOCK_SIZE;
+	mapPlayerLeftBottomX = ((int)player_->GetWorldPosition().x) / BLOCK_SIZE;
+	mapPlayerLeftBottomY = ((int)player_->GetWorldPosition().y - (int)player_->GetRadius()) / BLOCK_SIZE;
+
+	for (auto& sprite1 : mapPos1_) {
+		sprite1 = std::make_unique<Sprite>();
+		sprite1->Initialize();
+		sprite1->SetAnchorPoint({ 0.0f, 0.0f });
+	}
+	for (auto& sprite2 : mapPos2_) {
+		sprite2 = std::make_unique<Sprite>();
+		sprite2->Initialize();
+		sprite2->SetAnchorPoint({ 0.0f, 0.0f });
+	}
+	for (auto& sprite3 : mapPos3_) {
+		sprite3 = std::make_unique<Sprite>();
+		sprite3->Initialize();
+		sprite3->SetAnchorPoint({ 0.0f, 0.0f });
+	}
+
 	//エネミーの初期化
 	LoadEnemyPopData();
 	UpdateEnemyPopCommands();
@@ -234,10 +259,10 @@ void GameScene::GameSceneUpdate() {
 }
 void GameScene::GameSceneDraw() {
 	//スカイドームの描画
-	skydome_->Draw(viewProjection_);
+	//skydome_->Draw(viewProjection_);
 
 	//グラウンドの更新
-	ground_->Draw(viewProjection_);
+	//ground_->Draw(viewProjection_);
 
 	//プレイヤーの描画
 	player_->Draw(viewProjection_);
@@ -260,6 +285,45 @@ void GameScene::GameSceneDraw() {
 }
 void GameScene::GameSceneDrawUI() {
 	player_->DrawUI();
+
+	//マップ
+	/*for (int y = 0; y < 25; y++) {
+		for (int x = 0; x < 80; x++) {
+			if (map[y][x] == BLOCK) {
+				assert(m < BLOCK_MAX);
+				auto& sprite1 = mapPos1_[m];
+				sprite1->SetTextureHandle(mapTextures_[0]);
+				sprite1->SetPosition({ (float)x * 32, (float)y * 32 });
+				sprite1->SetRotation(0.0f);
+				sprite1->SetSize({ 32.0f, 32.0f });
+				sprite1->SetTextureRect({ (float)0, (float)0 }, { (float)48, (float)48 });
+				sprite1->Draw();
+				m++;
+			}
+			else if (map[y][x] == UPONLY) {
+				assert(l < BLOCK_MAX);
+				auto& sprite2 = mapPos2_[l];
+				sprite2->SetTextureHandle(mapTextures_[1]);
+				sprite2->SetPosition({ (float)x * 32, (float)y * 32 });
+				sprite2->SetRotation(0.0f);
+				sprite2->SetSize({ 32.0f, 32.0f });
+				sprite2->SetTextureRect({ (float)0, (float)0 }, { (float)48, (float)48 });
+				sprite2->Draw();
+				l++;
+			}
+			else if (map[y][x] == GOAL) {
+				assert(n < BLOCK_MAX);
+				auto& sprite3 = mapPos3_[n];
+				sprite3->SetTextureHandle(mapTextures_[2]);
+				sprite3->SetPosition({ (float)x * 32, (float)y * 32 });
+				sprite3->SetRotation(0.0f);
+				sprite3->SetSize({ 32.0f, 32.0f });
+				sprite3->SetTextureRect({ (float)0, (float)0 }, { (float)48, (float)48 });
+				sprite3->Draw();
+				n++;
+			}
+		}
+	}*/
 }
 
 //void GameScene::ClearSceneInitialize() {
@@ -329,8 +393,23 @@ void GameScene::Initialize() {
 	enemyTex_ = TextureManager::Load("red.png");
 	itemTex_ = TextureManager::Load("white1x1.png");
 	whiteTex_ = TextureManager::Load("white1x1.png");
+	mapTextures_[0] = TextureManager::Load("1.png");
+	mapTextures_[1] = TextureManager::Load("2.png");
+	mapTextures_[2] = TextureManager::Load("3.png");
 
 	//スプライト
+	/*for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 1; j++) {
+			mapPos_[i][j].reset(Sprite::Create(mapTextures_[i], { 0.0f, 0.0f }));
+			mapPos_[i][j]->SetTextureHandle({ mapTextures_[i] });
+			mapPos_[i][j]->SetPosition({ 0.0f, 0.0f });
+			mapPos_[i][j]->SetSize({ 32.0f, 32.0f });
+			mapPos_[i][j]->SetTextureRect({ 0.0f,0.0f, }, { 48.0f, 48.0f });
+		}
+	}*/
+	m = 0;
+	l = 0;
+	n = 0;
 
 	//3Dモデル
 	modelSkydome_.reset(Model::CreateFromOBJ("skydome", true));

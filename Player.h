@@ -85,6 +85,8 @@ private:
 
 	int haveBullet = 0;
 
+	float radius = 48.0f;
+
 public:
 	Player();
 	~Player();
@@ -151,6 +153,7 @@ public:
 	const WorldTransform& GetWorldTransform() { return worldTransform_; }
 	const ViewProjection* GetViewProjection() { return viewProjection_; }
 	bool IsDead() { return isDead_; }
+	const float& GetRadius() { return radius; }
 
 	//衝突を検出したら呼び出されるコールバック関数	
 	void OnCollision();
