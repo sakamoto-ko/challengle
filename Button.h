@@ -40,8 +40,8 @@ public:
 	bool isTriggerAttack();
 	bool isTriggerRight();
 	bool isTriggerLeft();
+	bool isTriggerUp();
+	bool isTriggerDown();
 
 	//プレスチェック
-	bool isPressJump();
-	bool isPressAttack();
 };

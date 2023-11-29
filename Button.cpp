@@ -37,8 +37,10 @@ bool Button::isTriggerAttack() {
 	//ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
 
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+	//前フレームの状態がfalse
+	if (Input::GetInstance()->GetJoystickStatePrevious((joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER), joyState)) {
+		//現在フレームの状態がtrue
+		if ((joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) >= 128) {
 			return true;
 		}
 	}
@@ -54,8 +56,12 @@ bool Button::isTriggerRight(){
 	XINPUT_STATE joyState;
 
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		if (joyState.Gamepad.sThumbLX / SHRT_MAX == 1) {
-			return true;
+		//前フレームの状態がfalse
+		if (Input::GetInstance()->GetJoystickStatePrevious(joyState.Gamepad.sThumbLX / SHRT_MAX, joyState)) {
+			//現在フレームの状態がtrue
+			if (joyState.Gamepad.sThumbLX / SHRT_MAX >= 0.5) {
+				return true;
+			}
 		}
 	}
 	if (input_->TriggerKey(DIK_RIGHT) ||
@@ -66,17 +72,63 @@ bool Button::isTriggerRight(){
 	return false;
 }
 
-bool Button::isTriggerLeft(){
+bool Button::isTriggerLeft() {
 	//ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
 
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		if (joyState.Gamepad.sThumbLX / SHRT_MAX == -1) {
-			return true;
+		//前フレームの状態がfalse
+		if (Input::GetInstance()->GetJoystickStatePrevious(joyState.Gamepad.sThumbLX / SHRT_MAX, joyState)) {
+			//現在フレームの状態がtrue
+			if (joyState.Gamepad.sThumbLX / SHRT_MAX <= -0.5) {
+				return true;
+			}
 		}
 	}
 	if (input_->TriggerKey(DIK_LEFT) ||
 		input_->TriggerKey(DIK_A)) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Button::isTriggerUp() {
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		//前フレームの状態がfalse
+		if (Input::GetInstance()->GetJoystickStatePrevious(joyState.Gamepad.sThumbLY / SHRT_MAX, joyState)) {
+			//現在フレームの状態がtrue
+			if (joyState.Gamepad.sThumbLY / SHRT_MAX >= 0.5) {
+				return true;
+			}
+		}
+	}
+	if (input_->TriggerKey(DIK_UP) ||
+		input_->TriggerKey(DIK_W)) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Button::isTriggerDown() {
+	//ゲームパッドの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState;
+	
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		//前フレームの状態がfalse
+		if (Input::GetInstance()->GetJoystickStatePrevious(joyState.Gamepad.sThumbLY / SHRT_MAX, joyState)) {
+			//現在フレームの状態がtrue
+			if (joyState.Gamepad.sThumbLY / SHRT_MAX <= -0.5) {
+				return true;
+			}
+		}
+	}
+	if (input_->TriggerKey(DIK_DOWN) ||
+		input_->TriggerKey(DIK_S)) {
 		return true;
 	}
 

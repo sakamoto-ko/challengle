@@ -1,5 +1,16 @@
 ﻿#pragma once
-#include "EnemyBullet.h"
+#include "Audio.h"
+#include "AxisIndicator.h"
+#include "DebugCamera.h"
+#include "DirectXCommon.h"
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
 #include "Button.h"
 #include "scene.h"
 
@@ -13,40 +24,14 @@ private:
 	//ワールド変換データ
 	//Base
 	WorldTransform worldTransform_;
-	//体
-	WorldTransform worldTransformBody_;
-	//頭
-	WorldTransform worldTransformHead_;
-	//左手
-	WorldTransform worldTransformArmL_;
-	//右手
-	WorldTransform worldTransformArmR_;
-	//左足
-	WorldTransform worldTransformLegL_;
-	//右足
-	WorldTransform worldTransformLegR_;
-	//武器
-	WorldTransform worldTransformWeapon_;
-	//左羽根
-	WorldTransform worldTransformWingL1_;
-	WorldTransform worldTransformWingL2_;
-	WorldTransform worldTransformWingL3_;
-	WorldTransform worldTransformWingL4_;
-	//右羽根
-	WorldTransform worldTransformWingR1_;
-	WorldTransform worldTransformWingR2_;
-	WorldTransform worldTransformWingR3_;
-	WorldTransform worldTransformWingR4_;
+	WorldTransform worldTransformTemp_;
 
 	//モデル
 	std::vector<Model*> models_;
-	std::vector<Model*> bulletModels_;
 
 	//テクスチャハンドル
 	std::vector<uint32_t> textures_;
 	uint32_t tex_ = 0u;
-	std::vector<uint32_t> bulletTextures_;
-	uint32_t bulletTex_ = 0u;
 
 	//キーボード入力
 	Input* input_ = nullptr;
@@ -58,66 +43,45 @@ private:
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 
-	//フラグ
-	bool isDead_ = false;
-	bool isAttack = false;
-	bool isAttack2 = false;
-	bool isHit = false;
-
-	//HP
-	int32_t hp = 100;
-	int32_t hp_start = 100;
-
 	//速度
 	Vector3 velocity_ = {};
 
-	Vector3 moveMax = { 18.0f ,5.0f,1.0f };
-	Vector3 moveMin = { -3.0f,-4.6f, 1.0f };
+	//フラグ
+	bool isDead_ = false;
+	bool isHit = false;
+	bool isJump = false;
+	bool isAttack = false;
 
-	//カウント
-	int moveTime = 0;
-	int hitTime = 0;
-	int attackWaitCount = 0;
-	int attack2WaitCount = 0;
-	int attackCount = 0;
+	//タイム
+	int AttackWaitTime = 0;
 
+	//Behavior
 	enum class Behavior {
 		kRoot,//通常
 		kHit,//被弾
-		kHalfHp,//体力半分
-		kAttack1,//攻撃1
-		kAttack2,//攻撃2
+		kJump,//ジャンプ
+		kAttack,//攻撃1
 	};
-	Behavior behavior_ = Behavior::kAttack1;
-
-	//次のふるまいリクエスト
+	Behavior behavior_ = Behavior::kRoot;
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
-	int enemyBulletNum = 0;
-
-	bool isHalfHp = false;
-	int halfHpCount = 0;
-
-	Vector3 bulletVelocity[2] = {};
-	int attackNum = 0;
-
-	float speed = 0.5f;
-
-	float floatingParameter_ = 0.0f;
+	//ジャンプ初速
+	const float kJumpFirstSpeed = 0.4f;
+	//重力加速度
+	const float kGravityAcceleration = 0.05f;
+	//加速度ベクトル
+	Vector3 accelerationVector = {};
 
 public:
 	Enemy();
 	~Enemy();
 	//初期化
-	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
+	void Initialize(Vector3 pos, const std::vector<Model*>& models, const std::vector<uint32_t>& textures);
 	//更新
-	void Update(const ViewProjection viewProjection);
+	void Update();
 	//描画
 	void Draw(const ViewProjection& viewProjection);
 	void DrawUI();
-
-	//弾発射
-	void Shot();
 
 	//セッター
 	void SetParent(const WorldTransform* parent);
@@ -131,39 +95,37 @@ public:
 	const WorldTransform& GetWorldTransform() { return worldTransform_; }
 	const ViewProjection* GetViewProjection() { return viewProjection_; }
 	bool IsDead() { return isDead_; }
-	int32_t GetEnemyHp() { return hp; }
+	Vector3 GetCenterPosition();
 
 	//当たり判定
 	void OnCollision();
 
 	//Behavior
 	//通常行動初期化
+	void BehaviorSetRoot();
 	void BehaviorRootInitialize();
-	//通常行動更新
 	void BehaviorRootUpdate();
 
-	//攻撃1行動初期化
-	void BehaviorAttack1Initialize();
-	//攻撃1行動更新
-	void BehaviorAttack1Update();
-	//攻撃2行動初期化
-	void BehaviorAttack2Initialize();
-	//攻撃2行動更新
-	void BehaviorAttack2Update();
-	//被弾時行動初期化
+	//攻撃行動
+	void BehaviorSetAttack();
+	void BehaviorAttackInitialize();
+	void BehaviorAttackUpdate();
+
+	//ジャンプ行動
+	void BehaviorSetJump();
+	void BehaviorJumpInitialize();
+	void BehaviorJumpUpdate();
+
+	//被弾時行動
+	void BehaviorSetHit();
 	void BehaviorHitInitialize();
-	//被弾時行動更新
 	void BehaviorHitUpdate();
-	//体力半分時行動初期化
-	void BehaviorHalfHpInitialize();
-	//体力半分時行動更新
-	void BehaviorHalfHpUpdate();
 
 	//リセット
 	void Reset();
+	//セーブ
+	void Save();
 
-	// 浮遊ギミック初期化
-	void InitializeFloatingGimmick();
-	void UpdateFloatingGimmick();
-
+	//移動
+	void Move();
 };

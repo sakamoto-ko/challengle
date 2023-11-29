@@ -598,3 +598,18 @@ void EaseOutDown(Vector2& pos, float& velocity) {
 void SetRandom() {
 	srand(unsigned int(time(nullptr)));
 }
+
+Vector3 ConvertScreenPosition(const ViewProjection viewProjection, Vector3 position) {
+	//スクリーン座標を計算
+	Vector3 screenPosition = position;
+	//ビューポート行列
+	Matrix4x4 matViewport = MakeViewportMatrix(0, 0,
+		1280.0f, 720.0f, 0, 1);
+	//ビュー行列とプロジェクション行列、ビューポート行列を合成する
+	Matrix4x4 matViewProjectionViewport =
+		Multiply(Multiply(viewProjection.matView, viewProjection.matProjection), matViewport);
+	//ワールド→スクリーン座標変換(ここで3Dから2Dになる)
+	screenPosition = TransformNormal(screenPosition, matViewProjectionViewport);
+
+	return screenPosition;
+}

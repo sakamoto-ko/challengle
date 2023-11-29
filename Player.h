@@ -31,6 +31,7 @@ private:
 	//ワールド変換データ
 	//Base
 	WorldTransform worldTransform_;
+	WorldTransform worldTransformTemp_;
 
 	//移動
 	Vector3 velocity_ = {};
@@ -41,8 +42,11 @@ private:
 	//Behavior
 	enum class Behavior {
 		kRoot,//通常状態
-		//kAttack,//攻撃中
+		kAttack,//攻撃中
+		//kRight,
+		//kLeft,
 		kJump,//ジャンプ中
+		kDive,//急降下中
 	};
 	Behavior behavior_ = Behavior::kRoot;
 
@@ -51,22 +55,35 @@ private:
 
 	bool isAttack = false;
 	bool isJump = false;
+	bool isJumpFirst = false;
+	bool isDive = false;
 	bool isMove = false;
+	bool isHit = false;
 
 	//ジャンプ初速
-	const float kJumpFirstSpeed = 0.4f;
+	const float kJumpFirstSpeed = 0.6f;
 	//重力加速度
-	const float kGravityAcceleration = 0.05f;
+	const float kGravityAcceleration = 0.1f;
 	//加速度ベクトル
 	Vector3 accelerationVector = {};
 
 	int playerBulletNum_ = 0;
 	int playerBulletMax_ = 1;
 
-	int shotFinishTime = 0;
+	int shotFinishTime = 0; 
 	int moveFinishTime = 0;
 
 	bool tempo_ = false;
+
+	int hitCount = 0;
+
+	//レティクル用
+	std::unique_ptr<Sprite> spritePos_ = {};
+	WorldTransform worldTransformReticle_;
+
+	int hp_ = 100;
+
+	int haveBullet = 0;
 
 public:
 	Player();
@@ -86,22 +103,40 @@ public:
 	void Move();
 	//弾発射
 	void Shot();
+	//着地
+	void Landing();
+	void PlusGravity();
 
 	//Behavior
-	//通常行動初期化
+	//通常行動
+	void BehaviorSetRoot();
 	void BehaviorRootInitialize();
-	//通常行動更新
 	void BehaviorRootUpdate();
 
-	//攻撃行動初期化
-	//void BehaviorAttackInitialize();
-	//攻撃行動更新
-	//void BehaviorAttackUpdate();
+	//攻撃行動
+	void BehaviorSetAttack();
+	void BehaviorAttackInitialize();
+	void BehaviorAttackUpdate();
 
-	//ジャンプ行動初期化
+	//右移動行動
+	void BehaviorSetRight();/*
+	void BehaviorRightInitialize();
+	void BehaviorRightUpdate();*/
+
+	//左行動行動
+	void BehaviorSetLeft();/*
+	void BehaviorLeftInitialize();
+	void BehaviorLeftUpdate();*/
+
+	//ジャンプ行動
+	void BehaviorSetJump();
 	void BehaviorJumpInitialize();
-	//ジャンプ行動更新
 	void BehaviorJumpUpdate();
+
+	//ダイブ行動
+	void BehaviorSetDive();
+	void BehaviorDiveInitialize();
+	void BehaviorDiveUpdate();
 
 	//セッター
 	void SetParent(const WorldTransform* parent);
@@ -109,7 +144,7 @@ public:
 	void SetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 	void SetModels(const std::vector<Model*>& models) { models_ = models; }
 	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
-	void SetTempo(bool tempo) { tempo_ = tempo; }
+	void SetSpritePos(Vector2 spritePos) { spritePos_->SetPosition(spritePos); }
 
 	//ゲッター
 	Vector3 GetWorldPosition();
@@ -122,4 +157,9 @@ public:
 
 	//リセット
 	void Reset();
+	//セーブ
+	void Save();
+
+	//マウスカーソルのスクリーン座標からワールド座標を取得して3Dレティクル配置
+	void GetReticlePosition(const ViewProjection viewProjection);
 };

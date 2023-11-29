@@ -9,10 +9,18 @@
 #include <ctime>
 
 #include <cassert>
-const float playerRadius = 2.0f;
-const float enemyRadius = 2.0f;
-const float playerBulletRadius = 2.0f;
-const float enemyBulletRadius = 2.0f;
+#include "Audio.h"
+#include "AxisIndicator.h"
+#include "DebugCamera.h"
+#include "DirectXCommon.h"
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
 
 #define kWindowWidth 1280.0f
 #define kWindowHeight 720.0f
@@ -86,3 +94,5 @@ void EaseOutUp(Vector2& pos, float& velocity);
 void EaseOutDown(Vector2& pos, float& velocity);
 
 void SetRandom();
+//スクリーン座標変換
+Vector3 ConvertScreenPosition(const ViewProjection viewProjection, Vector3 position);

@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	TextureManager::Load("white1x1.png");
 
 	// スプライト静的初期化
-	Sprite::StaticInitialize(dxCommon->GetDevice(), WinApp::kWindowWidth, WinApp::kWindowHeight);
+	Sprite::StaticInitialize(dxCommon->GetDevice(), 1280, 720);
 
 	// 3Dモデル静的初期化
 	Model::StaticInitialize();

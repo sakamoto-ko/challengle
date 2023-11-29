@@ -2,9 +2,12 @@
 #include "Skydome.h"
 #include "Ground.h"
 #include "RailCamera.h"
-#include "player.h"
+#include "Player.h"
+#include "Enemy.h"
 #include "Button.h"
 #include "tempo.h"
+#include "LockOn.h"
+#include "DropItem.h"
 
 /// <summary>
 /// ゲームシーン
@@ -65,6 +68,29 @@ public: // メンバ関数
 	//自弾の追加
 	void AddPlayerBullet(PlayerBullet* playerBullet);
 
+	//敵発生データの読み込み
+	void LoadEnemyPopData();
+
+	//敵発生コマンドの更新
+	void UpdateEnemyPopCommands();
+
+	//敵発生関数
+	void EnemyPop(Vector3 pos);
+
+	Vector3 GetEnemyPopPos() { return enemyPopPos; }
+	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
+
+	//アイテム発生データの読み込み
+	void LoadItemPopData();
+
+	//アイテム発生コマンドの更新
+	void UpdateItemPopCommands();
+
+	//アイテム発生
+	void ItemPop(Vector3 pos);
+
+	void SetItemPopPos(Vector3 pos) { itemPopPos = pos; }
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -108,6 +134,34 @@ private: // メンバ変数
 	//弾リストを取得
 	const std::list<PlayerBullet*>& GetPlayerBullets() { return playerBullets_; }
 
+	// エネミー
+	std::list<std::unique_ptr<Enemy>> enemies_;
+	std::stringstream enemyPopCommands;
+	Vector3 enemyPopPos = {};
+	//std::unique_ptr<Enemy> enemy_ = nullptr;
+	std::unique_ptr<Model> enemyModel_ = nullptr;
+	uint32_t enemyTex_ = 0u;
+
+	//待機中フラグ
+	bool isWait = false;
+	//待機タイマー
+	uint32_t waitTimer = 0;
+
+	//待機中フラグ
+	bool isItemWait = false;
+	//待機タイマー
+	uint32_t waitItemTimer = 0;
+
 	//テンポ
 	std::unique_ptr<tempo> tempo_ = nullptr;
+
+	//ロックオン
+	std::unique_ptr<LockOn> lockOn_;
+
+	//アイテム
+	std::list < std::unique_ptr<DropItem>> items_;
+	std::stringstream itemPopCommands;
+	Vector3 itemPopPos = {};
+	std::unique_ptr<Model> itemModel_ = nullptr;
+	uint32_t itemTex_ = 0u;
 };
