@@ -4,6 +4,9 @@
 #include <iostream>
 #include "ImGuiManager.h"
 
+#include "Player.h"
+#include "GameScene.h"
+
 //移動初期化
 void Enemy::InitializeMoveGimmick() {
 	//中心座標
@@ -40,25 +43,25 @@ void Enemy::UpdateMoveGimmick() {
 
 	//移動方向に向きを合わせる
 	//Y軸周り角度(θy)
-	worldTransformBody_.rotation_.y = std::atan2(move.x, move.z);
+	worldTransformBase_.rotation_.y = std::atan2(move.x, move.z);
 
 	//結果ででた位置を中心位置に加算し、それを描画位置とする
-	worldTransformBody_.translation_.x = center.x + add_x;
-	worldTransformBody_.translation_.z = center.z + add_z;
+	worldTransformBase_.translation_.x = center.x + add_x;
+	worldTransformBase_.translation_.z = center.z + add_z;
 
 	// 角度更新
 	angle.x += 1.0f;
 
 #ifdef _DEBUG
 
-	ImGui::Begin("window");
+	/*ImGui::Begin("window");
 	if (ImGui::TreeNode("Enemy")) {
-		ImGui::SliderFloat3("body.translation", &worldTransformBody_.translation_.x, -10, 10);
-		ImGui::SliderFloat3("L_arm.translation", &worldTransformL_arm_.translation_.x, -10, 10);
-		ImGui::SliderFloat3("R_arm.translation", &worldTransformR_arm_.translation_.x, -10, 10);
+		ImGui::SliderFloat3("body.translation", &worldTransformBody_.translation_.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("L_arm.translation", &worldTransformL_arm_.translation_.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("R_arm.translation", &worldTransformR_arm_.translation_.x, -10.0f, 10.0f);
 		ImGui::TreePop();
 	}
-	ImGui::End();
+	ImGui::End();*/
 
 #endif // _DEBUG
 }
@@ -71,22 +74,35 @@ void Enemy::Initialize(const std::vector<Model*>& models) {
 	//既定クラスの初期化
 	BaseCharacter::Initialize(models);
 
+	//base
+	worldTransformBase_.Initialize();
+	worldTransformBase_.translation_.y = 2.0f;
+	//体
 	worldTransformBody_.Initialize();
+	worldTransformBody_.parent_ = &worldTransformBase_;
+	//左腕
 	worldTransformL_arm_.Initialize();
-	worldTransformR_arm_.Initialize();
-
-	worldTransformBody_.translation_.y = 2.0f;
 	worldTransformL_arm_.parent_ = &worldTransformBody_;
 	worldTransformL_arm_.translation_.z -= 2.5f;
+	//右腕
+	worldTransformR_arm_.Initialize();
 	worldTransformR_arm_.parent_ = &worldTransformBody_;
 	worldTransformR_arm_.translation_.z += 2.5f;
 
 	InitializeMoveGimmick();
+
+	worldTransformBase_.UpdateMatrix();
+	worldTransformBody_.UpdateMatrix();
+	worldTransformL_arm_.UpdateMatrix();
+	worldTransformR_arm_.UpdateMatrix();
 }
 void Enemy::Update() {
 	//既定クラスの更新
 	BaseCharacter::Update();
 
+	assert(gameScene_);
+
+	worldTransformBase_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
@@ -100,4 +116,22 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
 	models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
 	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+}
+
+Vector3 Enemy::GetCenterPosition() {
+	const Vector3 offset = { -1.1f,1.1f,0.0f };
+
+	Vector3 result = TransformNormal(offset, worldTransformBase_.matWorld_);
+
+	// TODO: return ステートメントをここに挿入します
+	return result;
+}
+
+const Vector3 Enemy::constGetCenterPosition() {
+	const Vector3 offset = { 0.0f,1.0f,0.0f };
+
+	Vector3 result = TransformNormal(offset, worldTransform_.matWorld_);
+
+	// TODO: return ステートメントをここに挿入します
+	return result;
 }

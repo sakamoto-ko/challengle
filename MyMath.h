@@ -5,6 +5,19 @@
 #include "Matrix4x4.h"
 #include <cmath>
 
+#include "Audio.h"
+#include "AxisIndicator.h"
+#include "DebugCamera.h"
+#include "DirectXCommon.h"
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "TextureManager.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
+
 #define PAI 3.14f
 
 // 加算
@@ -58,3 +71,6 @@ Vector3 Multiply(Vector3 v, Matrix4x4 m);
 //Vector3 Add(Vector3 v, Matrix4x4 m);
 //ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
+
+//スクリーン座標変換
+Vector3 ConvertScreenPosition(const ViewProjection viewProjection, Vector3 position);

@@ -49,7 +49,7 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	worldTransformR_arm_.translation_.x = worldTransformBase_.translation_.x - 0.75f;
 
 	worldTransformWeapon_.translation_.y = worldTransformBase_.translation_.x - 1.5f;
-	
+
 	//浮遊ギミック初期化
 	InitializeFloatingGimmick();
 
@@ -64,7 +64,7 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	grobalVariables->AddItem(groupName, "Head Translation", worldTransformFace_.translation_);
 	grobalVariables->AddItem(groupName, "ArmL Translation", worldTransformL_arm_.translation_);
 	grobalVariables->AddItem(groupName, "ArmR Translation", worldTransformR_arm_.translation_);
-	
+
 }
 
 //浮遊ギミック初期化
@@ -169,7 +169,7 @@ void Player::BehaviorRootUpdate() {
 		}
 
 		//ジャンプボタンを押したら
-		if(joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 			isJump = true;
 		}
 
@@ -218,13 +218,6 @@ void Player::BehaviorRootUpdate() {
 
 	}
 
-	worldTransformBase_.UpdateMatrix();
-	worldTransformBody_.UpdateMatrix();
-	worldTransformFace_.UpdateMatrix();
-	worldTransformL_arm_.UpdateMatrix();
-	worldTransformR_arm_.UpdateMatrix();
-	worldTransformWeapon_.UpdateMatrix();
-
 #ifdef _DEBUG
 
 	ImGui::Begin("window");
@@ -240,6 +233,13 @@ void Player::BehaviorRootUpdate() {
 	ImGui::End();
 
 #endif // _DEBUG
+
+	worldTransformBase_.UpdateMatrix();
+	worldTransformBody_.UpdateMatrix();
+	worldTransformFace_.UpdateMatrix();
+	worldTransformL_arm_.UpdateMatrix();
+	worldTransformR_arm_.UpdateMatrix();
+	worldTransformWeapon_.UpdateMatrix();
 }
 
 //攻撃行動更新

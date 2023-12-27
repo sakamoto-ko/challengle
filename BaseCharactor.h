@@ -35,5 +35,6 @@ public:
 	//ワールド変換データを取得
 	//<returns">ワールド変換データ</returns>
 	const WorldTransform& GetWorldTransform() { return worldTransform_; }
+
 };
 

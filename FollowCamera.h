@@ -11,6 +11,10 @@
 #include "TextureManager.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+
+//前方宣言
+class LockOn;
+
 class FollowCamera
 {
 private:
@@ -18,6 +22,9 @@ private:
 	ViewProjection viewProjection_;
 	//追従対象
 	const WorldTransform* target_ = nullptr;
+
+	const LockOn* lockOn_ = nullptr;
+
 public:
 	FollowCamera();
 	~FollowCamera();
@@ -27,5 +34,6 @@ public:
 	void Update();
 	const ViewProjection& GetViewProjection() { return viewProjection_; }
 	const void SetTarget(const WorldTransform* target) { target_ = target; }
+	void SetLockOn(const LockOn* lockOn) { lockOn_ = lockOn; }
 };
 

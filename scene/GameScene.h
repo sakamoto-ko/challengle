@@ -10,6 +10,7 @@
 #include "Skydome.h"
 #include "Ground.h"
 #include "FollowCamera.h"
+#include "LockOn.h"
 
 /// <summary>
 /// ゲームシーン
@@ -44,6 +45,18 @@ public: // メンバ関数
 
 	//デバッグカメラ有効
 	bool isDebugCameraActive_ = false;
+
+	//敵発生データの読み込み
+	void LoadEnemyPopData();
+
+	//敵発生コマンドの更新
+	void UpdateEnemyPopCommands();
+
+	//敵発生関数
+	void EnemyPop(Vector3 pos);
+
+	Vector3 GetEnemyPopPos() { return enemyPopPos; }
+	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -81,13 +94,32 @@ private: // メンバ変数
 	//デバッグカメラ
 	DebugCamera* debugCamera_ = nullptr;
 
+	//プレイヤー
 	std::unique_ptr<Player> player_;
 
-	std::unique_ptr<Enemy> enemy_;
+	//エネミー
+	//std::unique_ptr<Enemy> enemy_;
+	std::list<std::unique_ptr<Enemy>> enemies_;
+	//敵リストを取得
+	//const std::list<std::unique_ptr<Enemy>>& GetEnemies() { return enemies_; }
+	//敵発生コマンド
+	std::stringstream enemyPopCommands;
+	Vector3 enemyPopPos = {};
 
+	//待機中フラグ
+	bool isWait = false;
+	//待機タイマー
+	uint32_t waitTimer = 0;
+
+	//スカイドーム
 	std::unique_ptr<Skydome> skydome_;
 
+	//グラウンド
 	std::unique_ptr<Ground> ground_;
 
+	//追従カメラ
 	std::unique_ptr<FollowCamera> followCamera_;
+
+	//ロックオン
+	std::unique_ptr<LockOn> lockOn_;
 };

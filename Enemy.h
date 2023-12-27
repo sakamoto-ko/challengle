@@ -1,9 +1,16 @@
 #pragma once
 #include "BaseCharactor.h"
 
+//自機クラスの前方宣言
+class Player;
+
+//GameSceneクラスの前方宣言
+class GameScene;
+
 class Enemy : public BaseCharacter
 {
 private:
+	WorldTransform worldTransformBase_;
 	WorldTransform worldTransformBody_;
 	WorldTransform worldTransformL_arm_;
 	WorldTransform worldTransformR_arm_;
@@ -23,6 +30,9 @@ private:
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 
+	//ゲームシーン
+	GameScene* gameScene_ = nullptr;
+
 public:
 	Enemy();
 	~Enemy();
@@ -36,7 +46,12 @@ public:
 	//移動更新
 	void UpdateMoveGimmick();
 
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	void GetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+	//中心座標を取得
+	//<returns">中心座標</returns>
+	Vector3 GetCenterPosition();
+	const Vector3 constGetCenterPosition();
 
+	//const Enemy GetEnemy() { return *this; }
 };
-

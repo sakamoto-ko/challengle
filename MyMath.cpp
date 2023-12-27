@@ -526,3 +526,18 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 
 	return result;
 }
+
+Vector3 ConvertScreenPosition(const ViewProjection viewProjection, Vector3 position) {
+	//スクリーン座標を計算
+	Vector3 screenPosition = position;
+	//ビューポート行列
+	Matrix4x4 matViewport = MakeViewportMatrix(0, 0,
+		WinApp::kWindowWidth, WinApp::kWindowHeight, 0, 1);
+	//ビュー行列とプロジェクション行列、ビューポート行列を合成する
+	Matrix4x4 matViewProjectionViewport =
+		Multiply(Multiply(viewProjection.matView, viewProjection.matProjection), matViewport);
+	//ワールド→スクリーン座標変換(ここで3Dから2Dになる)
+	screenPosition = TransformNormal(screenPosition, matViewProjectionViewport);
+
+	return screenPosition;
+}

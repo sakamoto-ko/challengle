@@ -53,7 +53,7 @@ public:
 
 	const WorldTransform& GetWorldTransform() { return worldTransformBase_; }
 
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	void GetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 
 	//浮遊ギミック初期化
 	void InitializeFloatingGimmick();

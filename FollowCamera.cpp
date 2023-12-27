@@ -3,6 +3,8 @@
 #include <cassert>
 #include "ImGuiManager.h"
 
+#include "LockOn.h"
+
 FollowCamera::FollowCamera() {}
 FollowCamera::~FollowCamera() {}
 //初期化
