@@ -54,14 +54,14 @@ void Enemy::UpdateMoveGimmick() {
 
 #ifdef _DEBUG
 
-	/*ImGui::Begin("window");
+	ImGui::Begin("window");
 	if (ImGui::TreeNode("Enemy")) {
 		ImGui::SliderFloat3("body.translation", &worldTransformBody_.translation_.x, -10.0f, 10.0f);
 		ImGui::SliderFloat3("L_arm.translation", &worldTransformL_arm_.translation_.x, -10.0f, 10.0f);
 		ImGui::SliderFloat3("R_arm.translation", &worldTransformR_arm_.translation_.x, -10.0f, 10.0f);
 		ImGui::TreePop();
 	}
-	ImGui::End();*/
+	ImGui::End();
 
 #endif // _DEBUG
 }
