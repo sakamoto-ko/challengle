@@ -14,9 +14,6 @@
 
 class PlayerBullet {
 private:
-	// キーボード入力
-	Input* input_ = nullptr;
-
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 
@@ -24,8 +21,10 @@ private:
 	std::vector<Model*> models_;
 
 	// テクスチャハンドル
-	std::vector<uint32_t> textures_;
-	uint32_t tex_ = 0u;
+	uint32_t textureHandle_ = 0u;
+
+	// キーボード入力
+	Input* input_ = nullptr;
 
 	//速度
 	Vector3 velocity_ = {};
@@ -42,7 +41,7 @@ public:
 	PlayerBullet();
 	~PlayerBullet();
 	// 初期化
-	void Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures, const Vector3& position, const Vector3 velocity);
+	void Initialize(const std::vector<Model*>& models, const Vector3& position, const Vector3 velocity);
 	// 更新
 	void Update();
 	// 描画
@@ -53,17 +52,6 @@ public:
 	//衝突を検出したら呼び出されるコールバック関数	
 	void OnCollision();
 
-	/// <summary>
-	/// モデル配列のセット
-	/// </summary>
-	/// <param name="models">モデル配列</param>
-	void SetModels(const std::vector<Model*>& models) { models_ = models; }
+	Vector3 GetWorldPosition(); void SetModels(const std::vector<Model*>& models) { models_ = models; }
 
-	/// <summary>
-	/// 画像配列のセット
-	/// </summary>
-	/// <param name="textures">画像配列</param>
-	void SetTextures(const std::vector<uint32_t>& textures) { textures_ = textures; }
-
-	Vector3 GetWorldPosition();
 };

@@ -9,7 +9,12 @@
 
 GameScene::GameScene() {}
 
-GameScene::~GameScene() {}
+GameScene::~GameScene() {
+	//bullet_の開放
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		delete playerBullet;
+	}
+}
 
 void GameScene::Initialize() {
 
@@ -109,6 +114,20 @@ void GameScene::Update() {
 	//プレイヤー
 	player_->Update();
 
+	//自弾更新
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		playerBullet->Update();
+	}
+	//デスフラグの立った弾を削除
+	playerBullets_.remove_if([](PlayerBullet* playerBullet) {
+		if (playerBullet->IsDead()) {
+			delete playerBullet;
+			return true;
+		}
+		return false;
+		}
+	);
+
 	//敵の発生と更新
 	UpdateEnemyPopCommands();
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
@@ -166,6 +185,11 @@ void GameScene::Draw() {
 	ground_->Draw(viewProjection_);
 
 	player_->Draw(viewProjection_);
+
+	//自弾描画
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		playerBullet->Draw(viewProjection_);
+	}
 
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
 		enemy->Draw(viewProjection_);
@@ -278,9 +302,12 @@ void GameScene::EnemyPop(Vector3 pos) {
 
 	//敵の生成
 	std::unique_ptr<Enemy> newEnemy = std::make_unique<Enemy>();
-	
+
+	newEnemy->SetGameScene(this);
+	newEnemy->SetPlayer(player_.get());
 	//初期化
 	newEnemy->Initialize(enemyModels);
+
 	//リストに敵を登録する, std::moveでユニークポインタの所有権移動
 	enemies_.push_back(std::move(newEnemy));
 
@@ -289,19 +316,12 @@ void GameScene::EnemyPop(Vector3 pos) {
 		//各セッターに値を代入
 		SetEnemyPopPos(pos);
 		enemy->GetViewProjection(&followCamera_->GetViewProjection());
-		enemy->SetGameScene(this);
 		//更新
 		enemy->Update();
 	}
-
-	//イテレータ
-	//for (auto enemy = enemies_.begin(); enemy != enemies_.end(); ++enemy) {
-	//	//各セッターに値を入
-	//	SetEnemyPopPos(pos);
-	//	enemy->get()->SetViewPRojection(&followCamera_->GetViewProjection());
-	//	enemy->get()->SetGameScene(this);
-
-	//	//更新
-	//	enemy->get()->Update();
-	//}
+}
+//自弾を追加する
+void GameScene::AddPlayerBullet(PlayerBullet* playerBullet) {
+	//リストに登録する
+	playerBullets_.push_back(playerBullet);
 }

@@ -11,6 +11,7 @@
 #include "Ground.h"
 #include "FollowCamera.h"
 #include "LockOn.h"
+#include "PlayerBullet.h"
 
 /// <summary>
 /// ゲームシーン
@@ -58,6 +59,9 @@ public: // メンバ関数
 	Vector3 GetEnemyPopPos() { return enemyPopPos; }
 	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
 
+	//自弾の追加
+	void AddPlayerBullet(PlayerBullet* playerBullet);
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -84,6 +88,9 @@ private: // メンバ変数
 	std::unique_ptr<Model> modelEnemyBody_;
 	std::unique_ptr<Model> modelEnemyL_arm_;
 	std::unique_ptr<Model> modelEnemyR_arm_;
+
+	std::list<PlayerBullet*> playerBullets_;
+	std::unique_ptr<Model>  playerBulletModel_ = nullptr;
 
 	//ワールドトランスフォーム
 	WorldTransform worldTransform_;

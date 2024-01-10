@@ -4,6 +4,7 @@
 #include <iostream>
 #include "ImGuiManager.h"
 #include "GlobalVariables.h"
+#include "GameScene.h"
 
 //調整項目の適用
 void Player::ApplyGlobalVariables() {
@@ -20,6 +21,17 @@ void Player::ApplyGlobalVariables() {
 Player::Player() {}
 
 Player::~Player() {}
+
+Vector3 Player::GetWorldPosition() {
+	//ワールド座標を入れる変数
+	Vector3 worldPos = {};
+	//ワールド行列の平行移動成分を取得(ワールド座標)
+	worldPos.x = worldTransformBody_.matWorld_.m[3][0];
+	worldPos.y = worldTransformBody_.matWorld_.m[3][1];
+	worldPos.z = worldTransformBody_.matWorld_.m[3][2];
+
+	return worldPos;
+}
 
 void Player::Initialize(const std::vector<Model*>& models) {
 	//既定クラスの初期化
@@ -52,6 +64,10 @@ void Player::Initialize(const std::vector<Model*>& models) {
 
 	//浮遊ギミック初期化
 	InitializeFloatingGimmick();
+
+	//bulletTextures_ = textures;
+	bulletModels_ = models;
+	//bulletTex_ = textures_[0];
 
 	GlobalVariables* grobalVariables = GlobalVariables::GetInstance();
 	const char* groupName = "Player";
@@ -162,6 +178,8 @@ void Player::BehaviorRootUpdate() {
 	//ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
 
+	GetReticlePosition(*viewProjection_);
+
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 		//Rトリガーを押していたら
 		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
@@ -198,12 +216,7 @@ void Player::BehaviorRootUpdate() {
 
 		//攻撃更新
 		if (isAttack) {
-			if (worldTransformWeapon_.rotation_.x <= 0.6f) {
-				worldTransformWeapon_.rotation_.x += 0.1f;
-			}
-			else if (worldTransformWeapon_.rotation_.x >= 0.6f) {
-				behaviorRequest_ = Behavior::kAttack;
-			}
+			behaviorRequest_ = Behavior::kAttack;
 		}
 
 		//ジャンプ更新
@@ -215,13 +228,13 @@ void Player::BehaviorRootUpdate() {
 		if (!isAttack && !isJump) {
 			UpdateFloatingGimmick();
 		}
-
 	}
 
 #ifdef _DEBUG
 
 	ImGui::Begin("window");
 	if (ImGui::TreeNode("Player")) {
+		ImGui::SliderFloat3("translation", &worldTransformBase_.translation_.x, -10, 10);
 		ImGui::SliderFloat3("face.translation", &worldTransformFace_.translation_.x, -10, 10);
 		ImGui::SliderFloat3("body.translation", &worldTransformBody_.translation_.x, -10, 10);
 		ImGui::SliderFloat3("L_arm.translation", &worldTransformL_arm_.translation_.x, -10, 10);
@@ -234,12 +247,15 @@ void Player::BehaviorRootUpdate() {
 
 #endif // _DEBUG
 
+	//行動制限
+	worldTransformBase_.translation_.x = Clamp(worldTransformBase_.translation_.x, -50.0f, 50.0f);
+	worldTransformBase_.translation_.z = Clamp(worldTransformBase_.translation_.z, -55.0f, 55.0f);
+
 	worldTransformBase_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformFace_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
-	worldTransformWeapon_.UpdateMatrix();
 }
 
 //攻撃行動更新
@@ -247,23 +263,36 @@ void Player::BehaviorAttackUpdate() {
 	//既定クラスの更新
 	BaseCharacter::Update();
 
-	if (worldTransformWeapon_.rotation_.x >= -1.5f) {
-		worldTransformWeapon_.rotation_.x -= 0.1f;
-	}
-	else if (worldTransformWeapon_.rotation_.x <= -1.5f) {
-		afterAttackStay--;
-		if (afterAttackStay <= 0) {
-			isAttack = false;
-			behaviorRequest_ = Behavior::kRoot;
-		}
-	}
+	assert(gameScene_);
+
+	//弾の速度
+	const float kBulletSpeed = 0.1f;
+
+	Vector3 bulletVelocity = {};
+
+	//自機から照準オブジェクトへのベクトル
+	bulletVelocity = Subtract(worldTransformReticle_.translation_, worldTransform_.translation_);
+	bulletVelocity = Multiply(kBulletSpeed, Normalize(bulletVelocity));
+
+	//弾を生成し、初期化
+	playerBulletNum_++;
+	PlayerBullet* newBullet = new PlayerBullet();
+	newBullet->Initialize(
+		bulletModels_,
+		{ worldTransform_.matWorld_.m[3][0],worldTransform_.matWorld_.m[3][1],worldTransform_.matWorld_.m[3][2] }
+	, bulletVelocity);
+
+	//弾をゲームシーンに登録する
+	gameScene_->AddPlayerBullet(newBullet);
+
+	isAttack = false;
+	behaviorRequest_ = Behavior::kRoot;
 
 	worldTransformBase_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformFace_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
-	worldTransformWeapon_.UpdateMatrix();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
@@ -352,4 +381,54 @@ void Player::BehaviorJumpUpdate() {
 	ImGui::End();
 
 #endif // _DEBUG
+}
+
+void Player::GetReticlePosition(const ViewProjection viewProjection) {
+	if (spritePos_ != nullptr) {
+		//スプライトの現在座標を取得
+		Vector2 spritePosition = spritePos_->GetPosition();
+
+		//ビューポート行列
+		Matrix4x4 matViewport = MakeViewportMatrix(0, 0, 1280, 720, 0, 1);
+		//ビュープロジェクションビューポート合成行列
+		Matrix4x4 matVPV = Multiply(Multiply(viewProjection.matView, viewProjection.matProjection), matViewport);
+
+		//合成行列の逆行列を計算する
+		Matrix4x4 matInverseVPV = Inverse(matVPV);
+
+		//スクリーン座標
+		Vector3 posNear = Vector3(spritePosition.x, spritePosition.y, 0);
+		Vector3 posFar = Vector3(spritePosition.x, spritePosition.y, 1);
+
+		//スクリーン座標系からワールド座標系へ
+		posNear = TransformNormal(posNear, matInverseVPV);
+		posFar = TransformNormal(posFar, matInverseVPV);
+
+		//マウスレイの方向
+		Vector3 mouseDirection = Subtract(posFar, posNear);
+		mouseDirection = Normalize(mouseDirection);
+
+		//カメラから照準オブジェクトの距離
+		const float kDistanceTestObject = 50.0f;
+		worldTransformReticle_.translation_ = Multiply(kDistanceTestObject, mouseDirection);
+
+		//キャラクターの座標を画面表示する処理
+#ifdef _DEBUG
+
+		ImGui::Begin("window");
+		if (ImGui::TreeNode("Reticle")) {
+			ImGui::Text("Near:(%+.2f,%+.2f,%+.2f)", posNear.x, posNear.y, posNear.z);
+			ImGui::Text("Far:(%+.2f,%+.2f,%+.2f)", posFar.x, posFar.y, posFar.z);
+			ImGui::Text("2DReticle:(%f,%f)", spritePos_->GetPosition().x, spritePos_->GetPosition().y);
+			ImGui::Text("3DReticle:(%+.2f,%+.2f,%+.2f)", worldTransformReticle_.translation_.x,
+				worldTransformReticle_.translation_.y, worldTransformReticle_.translation_.z);
+			ImGui::TreePop();
+		}
+		ImGui::End();
+
+#endif // _DEBUG
+
+		//worldTransform3DReticle_のワールド行列更新と転送
+		worldTransformReticle_.UpdateMatrix();
+	}
 }

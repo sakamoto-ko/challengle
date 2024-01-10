@@ -59,11 +59,11 @@ private:
 	//ラジアン度に変換
 	float kDegreeToRadian = PAI / 180.0f;
 	//最小距離
-	float minDistance_ = 10.0f;
+	float minDistance_ = 0.0f;
 	//最大距離
 	float maxDistance_ = 30.0f;
 	//角度範囲
-	float angleRenge_ = 20.0f * kDegreeToRadian;
+	float angleRenge_ = 90.0f * kDegreeToRadian;
 
 	Gamepad::Button button[256];
 };

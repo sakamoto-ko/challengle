@@ -9,48 +9,48 @@
 
 //移動初期化
 void Enemy::InitializeMoveGimmick() {
-	//中心座標
-	center = { 0.0f,1.5f,12.0f };
-	//角度
-	angle = { 0.5f,0.5f,0.5f };
-	//半径の長さ
-	length = 10.0f;
+	assert(player_);
+	Vector3 playerPos = player_->GetWorldPosition();
+
+	worldTransformBase_.translation_.x = float(playerPos.x + (rand() % 20 - 20) + 10);
+	worldTransformBase_.translation_.z = float(playerPos.z + (rand() % 20 - 20) + 10);
+
+	isAppear_ = true;
 }
 
 //移動更新
 void Enemy::UpdateMoveGimmick() {
-	// 中心座標に角度と長さを使用した円の位置を加算する
-	// 度数法の角度を弧度法に変換
-	float radius = angle.x * 3.14f / 180.0f;
-	// 三角関数を使用し、円の位置を割り出す。
-	float add_x = cos(radius) * length;
-	float add_z = sin(radius) * length;
+	assert(player_);
+
+	//移動(ベクトルを加算)
+	Vector3 playerPos = player_->GetWorldPosition();
+	Vector3 worldPos = Subtract(playerPos, worldTransformBase_.translation_);
+	Vector3 velocity = { worldPos };
 
 	//速さ
-	const float speed = 1.0f;
-	//移動量
-	Vector3 move = {
-		add_x,
-		0,
-		add_z
-	};
+	const float speed = 0.2f;
 	//移動量に速さを反映
-	move = Multiply(speed, Normalize(move));
+	velocity = Multiply(speed, Normalize(velocity));
 
 	//移動ベクトルをカメラの角度だけ回転する
 	Matrix4x4 rotate = MakeRotateMatrix(Multiply(1.0f, viewProjection_->rotation_));
-	move = TransformNormal(move, rotate);
+	velocity = TransformNormal(velocity, rotate);
+
+	worldTransformBase_.translation_.x += velocity.x;
+	worldTransformBase_.translation_.z += velocity.z;
 
 	//移動方向に向きを合わせる
 	//Y軸周り角度(θy)
-	worldTransformBase_.rotation_.y = std::atan2(move.x, move.z);
+	worldTransformBase_.rotation_.y = std::atan2(-velocity.x, -velocity.z);
 
-	//結果ででた位置を中心位置に加算し、それを描画位置とする
-	worldTransformBase_.translation_.x = center.x + add_x;
-	worldTransformBase_.translation_.z = center.z + add_z;
+	//行動制限
+	worldTransformBase_.translation_.x = Clamp(worldTransformBase_.translation_.x, -50.0f, 50.0f);
+	worldTransformBase_.translation_.z = Clamp(worldTransformBase_.translation_.z, -55.0f, 55.0f);
 
-	// 角度更新
-	angle.x += 1.0f;
+	worldTransformBase_.UpdateMatrix();
+	worldTransformBody_.UpdateMatrix();
+	worldTransformL_arm_.UpdateMatrix();
+	worldTransformR_arm_.UpdateMatrix();
 
 #ifdef _DEBUG
 
@@ -66,13 +66,14 @@ void Enemy::UpdateMoveGimmick() {
 #endif // _DEBUG
 }
 
-
 Enemy::Enemy() {}
 Enemy::~Enemy() {}
 
 void Enemy::Initialize(const std::vector<Model*>& models) {
 	//既定クラスの初期化
 	BaseCharacter::Initialize(models);
+
+	isAppear_ = false;
 
 	//base
 	worldTransformBase_.Initialize();
@@ -102,20 +103,17 @@ void Enemy::Update() {
 
 	assert(gameScene_);
 
-	worldTransformBase_.UpdateMatrix();
-	worldTransformBody_.UpdateMatrix();
-	worldTransformL_arm_.UpdateMatrix();
-	worldTransformR_arm_.UpdateMatrix();
-
 	UpdateMoveGimmick();
 }
 void Enemy::Draw(const ViewProjection& viewProjection) {
 	//既定クラスの描画
 	//BaseCharacter::Draw(viewProjection);
 
-	models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
-	models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
-	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	if (isAppear_) {
+		models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
+		models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
+		models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	}
 }
 
 Vector3 Enemy::GetCenterPosition() {

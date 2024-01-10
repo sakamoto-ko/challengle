@@ -22,11 +22,13 @@ void LockOn::Update(const std::list<std::unique_ptr<Enemy>>& enemies, const View
 		//Lトリガーを押していたら
 		if (TriggerL()) {
 			//ロックオン解除
-			target_ = nullptr;
+			target_ = nullptr;	
+			sprite2DReticle_->SetPosition({ 0.0f,0.0f });
 		}
 		//範囲外設定
 		else if (OutOfRange(viewProjection)) {
 			target_ = nullptr;
+			sprite2DReticle_->SetPosition({ 0.0f,0.0f });
 		}
 	}
 	else {
