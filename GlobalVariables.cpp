@@ -43,6 +43,7 @@ void GlobalVariables::SetValue(const std::string& groupName, const std::string& 
 
 //毎フレーム処理
 void GlobalVariables::Update() {
+#ifdef _DEBUG
 	if (!ImGui::Begin("Global Variables", nullptr, ImGuiWindowFlags_MenuBar)) {
 		ImGui::End();
 		return;
@@ -101,6 +102,7 @@ void GlobalVariables::Update() {
 
 	ImGui::EndMenuBar();
 	ImGui::End();
+#endif // _DEBUG
 }
 
 //ファイルに書き出し

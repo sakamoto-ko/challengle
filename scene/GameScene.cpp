@@ -76,7 +76,7 @@ void GameScene::Initialize() {
 	followCamera_->SetTarget(&player_->GetWorldTransform());
 
 	//エネミー
-	LoadEnemyPopData();
+	enemyCount = 0;
 	UpdateEnemyPopCommands();
 
 	//ロックオン
@@ -215,20 +215,6 @@ void GameScene::Draw() {
 #pragma endregion
 }
 
-//敵発生データの読み込み
-void GameScene::LoadEnemyPopData() {
-	//ファイルを開く
-	std::ifstream file;
-	file.open("./Resources/enemyPop.csv");
-	assert(file.is_open());
-
-	//ファイルの内容を文字列ストリームにコピー
-	enemyPopCommands << file.rdbuf();
-
-	//ファイルを閉じる
-	file.close();
-}
-
 //敵発生コマンドの更新
 void GameScene::UpdateEnemyPopCommands() {
 	//待機処理
@@ -241,54 +227,14 @@ void GameScene::UpdateEnemyPopCommands() {
 		return;
 	}
 
-	//1行文の文字列を入れる変数
-	std::string line;
-
-	//コマンド実行ループ
-	while (getline(enemyPopCommands, line)) {
-		//1行文分の文字列をストリームに変換して解析しやすくする
-		std::istringstream line_stream(line);
-
-		std::string word;
-		//,区切りで行の先頭文字列を取得
-		getline(line_stream, word, ',');
-		//"//"から始まる行はコメント
-		if (word.find("//") == 0) {
-			//コメント行を飛ばす
-			continue;
-		}
-		//POPコマンド
-		if (word.find("POP") == 0) {
-			//X座標
-			getline(line_stream, word, ',');
-			float x = (float)std::atof(word.c_str());
-
-			//Y座標
-			getline(line_stream, word, ',');
-			float y = (float)std::atof(word.c_str());
-
-			//Z座標
-			getline(line_stream, word, ',');
-			float z = (float)std::atof(word.c_str());
-
-			//敵を発生させる
-			EnemyPop(Vector3(x, y, z));
-		}
-		//WAITコマンド
-		else if (word.find("WAIT") == 0) {
-			getline(line_stream, word, ',');
-
-			//待ち時間
-			int32_t waitTime = atoi(word.c_str());
-
-			//待機開始
-			isWait = true;
-			waitTimer = waitTime;
-
-			//コマンドループを抜ける
-			break;//重要
-		}
+	if (enemyCount < 6) {
+		//敵を発生させる
+		EnemyPop(Vector3(0, 0, 0));
 	}
+
+	//待機開始
+	isWait = true;
+	waitTimer = 5;
 }
 
 //敵発生関数
@@ -310,6 +256,7 @@ void GameScene::EnemyPop(Vector3 pos) {
 
 	//リストに敵を登録する, std::moveでユニークポインタの所有権移動
 	enemies_.push_back(std::move(newEnemy));
+	enemyCount++;
 
 	//イテレータ
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
@@ -320,6 +267,7 @@ void GameScene::EnemyPop(Vector3 pos) {
 		enemy->Update();
 	}
 }
+
 //自弾を追加する
 void GameScene::AddPlayerBullet(PlayerBullet* playerBullet) {
 	//リストに登録する

@@ -129,4 +129,7 @@ private: // メンバ変数
 
 	//ロックオン
 	std::unique_ptr<LockOn> lockOn_;
+
+	int enemyCount = 0;
+
 };

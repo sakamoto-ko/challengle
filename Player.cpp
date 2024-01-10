@@ -413,20 +413,20 @@ void Player::GetReticlePosition(const ViewProjection viewProjection) {
 		worldTransformReticle_.translation_ = Multiply(kDistanceTestObject, mouseDirection);
 
 		//キャラクターの座標を画面表示する処理
-#ifdef _DEBUG
-
-		ImGui::Begin("window");
-		if (ImGui::TreeNode("Reticle")) {
-			ImGui::Text("Near:(%+.2f,%+.2f,%+.2f)", posNear.x, posNear.y, posNear.z);
-			ImGui::Text("Far:(%+.2f,%+.2f,%+.2f)", posFar.x, posFar.y, posFar.z);
-			ImGui::Text("2DReticle:(%f,%f)", spritePos_->GetPosition().x, spritePos_->GetPosition().y);
-			ImGui::Text("3DReticle:(%+.2f,%+.2f,%+.2f)", worldTransformReticle_.translation_.x,
-				worldTransformReticle_.translation_.y, worldTransformReticle_.translation_.z);
-			ImGui::TreePop();
-		}
-		ImGui::End();
-
-#endif // _DEBUG
+//#ifdef _DEBUG
+//
+//		ImGui::Begin("window");
+//		if (ImGui::TreeNode("Reticle")) {
+//			ImGui::Text("Near:(%+.2f,%+.2f,%+.2f)", posNear.x, posNear.y, posNear.z);
+//			ImGui::Text("Far:(%+.2f,%+.2f,%+.2f)", posFar.x, posFar.y, posFar.z);
+//			ImGui::Text("2DReticle:(%f,%f)", spritePos_->GetPosition().x, spritePos_->GetPosition().y);
+//			ImGui::Text("3DReticle:(%+.2f,%+.2f,%+.2f)", worldTransformReticle_.translation_.x,
+//				worldTransformReticle_.translation_.y, worldTransformReticle_.translation_.z);
+//			ImGui::TreePop();
+//		}
+//		ImGui::End();
+//
+//#endif // _DEBUG
 
 		//worldTransform3DReticle_のワールド行列更新と転送
 		worldTransformReticle_.UpdateMatrix();
