@@ -1,11 +1,18 @@
 #pragma once
 #include "BaseCharactor.h"
+#include "PlayerBullet.h"
 #include <optional>
+
+//GameSceneクラスの前方宣言
+class GameScene;
 
 class Player : public BaseCharacter{
 private:
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
+
+	std::vector<uint32_t> textures_;
+	uint32_t tex_ = 0u;
 
 	uint32_t kModelFace = 0;
 	uint32_t kModelBody = 1;
@@ -44,6 +51,20 @@ private:
 	int isJump = false;
 	int afterAttackStay = 20;
 
+	//ゲームシーン
+	GameScene* gameScene_ = nullptr;
+
+	//レティクル用
+	std::unique_ptr<Sprite> spritePos_ = {};
+	WorldTransform worldTransformReticle_;
+
+	int playerBulletNum_ = 0;
+	int playerBulletMax_ = 1;
+
+	std::vector<uint32_t> bulletTextures_;
+	uint32_t bulletTex_ = 0u;
+	std::vector<Model*> bulletModels_;
+
 public:
 	Player();
 	~Player();
@@ -80,4 +101,9 @@ public:
 	void ApplyGlobalVariables();
 
 	void Move(float y);
+
+	Vector3 GetWorldPosition();
+
+	void GetReticlePosition(const ViewProjection viewProjection);
+
 };

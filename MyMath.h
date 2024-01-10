@@ -74,3 +74,5 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 
 //スクリーン座標変換
 Vector3 ConvertScreenPosition(const ViewProjection viewProjection, Vector3 position);
+
+float Clamp(float x, float min, float max);

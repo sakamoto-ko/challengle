@@ -33,6 +33,11 @@ private:
 	//ゲームシーン
 	GameScene* gameScene_ = nullptr;
 
+	//自キャラ
+	Player* player_ = nullptr;
+
+	bool isAppear_ = false;
+
 public:
 	Enemy();
 	~Enemy();
@@ -48,6 +53,8 @@ public:
 
 	void GetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+	void SetPlayer(Player* player) { player_ = player; }
+
 	//中心座標を取得
 	//<returns">中心座標</returns>
 	Vector3 GetCenterPosition();
