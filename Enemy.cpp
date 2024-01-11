@@ -41,9 +41,25 @@ void Enemy::UpdateMoveGimmick() {
 	//Y軸周り角度(θy)
 	worldTransformBase_.rotation_.y = std::atan2(-velocity.x, -velocity.z);
 
-	//行動制限
-	worldTransformBase_.translation_.x = Clamp(worldTransformBase_.translation_.x, -50.0f, 50.0f);
-	worldTransformBase_.translation_.z = Clamp(worldTransformBase_.translation_.z, -55.0f, 55.0f);
+	//結果ででた位置を中心位置に加算し、それを描画位置とする
+	worldTransformBase_.translation_.x = center.x + add_x;
+	worldTransformBase_.translation_.z = center.z + add_z;
+
+	// 角度更新
+	angle.x += 1.0f;
+
+#ifdef _DEBUG
+
+	/*ImGui::Begin("window");
+	if (ImGui::TreeNode("Enemy")) {
+		ImGui::SliderFloat3("body.translation", &worldTransformBody_.translation_.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("L_arm.translation", &worldTransformL_arm_.translation_.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("R_arm.translation", &worldTransformR_arm_.translation_.x, -10.0f, 10.0f);
+		ImGui::TreePop();
+	}
+	ImGui::End();*/
+
+#endif // _DEBUG
 }
 
 Enemy::Enemy() {}
