@@ -38,6 +38,8 @@ public:
 	bool CheckAngleCondition(Vector3 positionView);
 	bool CheckAllCondition(Vector3 positionView);
 
+	bool IsLockOn();
+
 	Vector3 GetLockOnPosition();
 	Vector3 ConvertScreen(Vector3 pos, const ViewProjection& viewProjection);
 	Vector3 ConvertView(Vector3 pos, const ViewProjection& viewProjection);

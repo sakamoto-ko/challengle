@@ -139,6 +139,15 @@ bool LockOn::CheckAllCondition(Vector3 positionView)
 	return false;
 }
 
+bool LockOn::IsLockOn()
+{
+	//ロックオンしていれば
+	if (target_) {
+		return true;
+	}
+	return false;
+}
+
 Vector3 LockOn::GetLockOnPosition()
 {
 	//敵のロックオン座標取得

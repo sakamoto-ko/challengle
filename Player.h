@@ -6,7 +6,7 @@
 //GameSceneクラスの前方宣言
 class GameScene;
 
-class Player : public BaseCharacter{
+class Player : public BaseCharacter {
 private:
 	//カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
@@ -18,14 +18,12 @@ private:
 	uint32_t kModelBody = 1;
 	uint32_t kModelL_arm = 2;
 	uint32_t kModelR_arm = 3;
-	uint32_t kModelWeapon = 4;
 
 	WorldTransform worldTransformBase_;
 	WorldTransform worldTransformFace_;
 	WorldTransform worldTransformBody_;
 	WorldTransform worldTransformL_arm_;
 	WorldTransform worldTransformR_arm_;
-	WorldTransform worldTransformWeapon_;
 
 	//速度
 	Vector3 velocity_ = {};
@@ -65,6 +63,7 @@ private:
 	uint32_t bulletTex_ = 0u;
 	std::vector<Model*> bulletModels_;
 
+	bool isDead_ = false;
 public:
 	Player();
 	~Player();
@@ -106,4 +105,11 @@ public:
 
 	void GetReticlePosition(const ViewProjection viewProjection);
 
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+	void SetLockOnPosition(Vector3 reticlePos) { worldTransformReticle_.translation_ = reticlePos; }
+	bool IsDead() const { return isDead_; }
+
+	//衝突を検出したら呼び出されるコールバック関数	
+	void OnCollision();
+	void Reset();
 };

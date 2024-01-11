@@ -12,6 +12,7 @@
 #include "FollowCamera.h"
 #include "LockOn.h"
 #include "PlayerBullet.h"
+#include "TransitionEffect.h"
 
 /// <summary>
 /// ゲームシーン
@@ -62,12 +63,32 @@ public: // メンバ関数
 	//自弾の追加
 	void AddPlayerBullet(PlayerBullet* playerBullet);
 
+	void CheckAllCollisions();
+	void Reset();
+
+	bool GetIsReset() { return isReset_; }
+
+	// シーン遷移ゲッター
+	bool GetChangeGameScene() { return isChangeGameScene_; }
+
+	// シーン遷移セッター
+	void SetChangeGameScene(bool flag) { isChangeGameScene_ = flag; }
+
+	//全ての敵が死んだかどうか確認するフラグ
+	bool CheckAllEnemyIsDead();
+
+	//プレイヤーが死んだかどうか確認するフラグ
+	bool CheckPlayerIsDead();
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 
 	//テクスチャハンドル
 	//uint32_t textureHandle_ = 0;
+
+	// 画面遷移アニメーション
+	TransitionEffect* transition_ = nullptr;
 
 	//スプライト
 	Sprite* sprite_ = nullptr;
@@ -77,7 +98,7 @@ private: // メンバ変数
 
 	std::unique_ptr <Model> modelSkydome_ = nullptr;
 	std::unique_ptr <Model> modelGround_ = nullptr;
-	
+
 	//プレイヤーモデル
 	std::unique_ptr<Model> modelFace_;
 	std::unique_ptr<Model> modelBody_;
@@ -132,4 +153,21 @@ private: // メンバ変数
 
 	int enemyCount = 0;
 
+	bool isReset_ = false;
+
+	bool isChangeGameScene_ = false;
+
+	bool isGameClear_ = false;
+
+	bool isGameOver_ = false;
+
+	// 画像
+	uint32_t tex_ = 0u;
+
+	// スプライト
+	std::unique_ptr<Sprite> sprites_ = {};
+
+	int killEnemyCount_ = 0;
+
+	bool isTutorial = true;
 };

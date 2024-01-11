@@ -7,12 +7,71 @@
 #include "MyMath.h"
 #include "GlobalVariables.h"
 
+void GameScene::CheckAllCollisions() {
+	//判定対象AとBの座標
+	Vector3 posA, posB;
+#pragma region 自弾と敵キャラの当たり判定
+	//自弾の座標
+	for (PlayerBullet* playerBullet : playerBullets_) {
+		posA = playerBullet->GetWorldPosition();
+
+		//自弾と敵キャラ全ての当たり判定
+		//敵キャラの座標
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			posB = enemy->GetWorldPosition();
+
+			//座標AとBの距離を求める
+			//球と球の交差判定
+			if (posA.z + 1.0f >= posB.z && posA.z <= posB.z + 1.0f) {
+				if (posA.y + 1.0f >= posB.y && posA.y <= posB.y + 1.0f) {
+					if (posA.x + 1.0f >= posB.x && posA.x <= posB.x + 1.0f) {
+						//自弾の衝突時コールバックを呼び出す
+						playerBullet->OnCollision();
+						//敵キャラの衝突時コールバックを呼び出す
+						enemy->OnCollision();
+						killEnemyCount_++;
+						enemyCount--;
+					}
+				}
+			}
+		}
+	}
+#pragma endregion
+
+#pragma region 自キャラと敵キャラの当たり判定
+	//自キャラの座標
+	posA = player_->GetWorldPosition();
+
+	//敵キャラの座標
+	for (std::unique_ptr<Enemy>& enemy : enemies_) {
+		posB = enemy->GetWorldPosition();
+
+		//座標AとBの距離を求める
+		//球と球の交差判定
+		if (posA.z + 1.0f >= posB.z && posA.z <= posB.z + 1.0f) {
+			if (posA.y + 1.0f >= posB.y && posA.y <= posB.y + 1.0f) {
+				if (posA.x + 1.0f >= posB.x && posA.x <= posB.x + 1.0f) {
+					//自弾の衝突時コールバックを呼び出す
+					player_->OnCollision();
+					//敵キャラの衝突時コールバックを呼び出す
+					enemy->OnCollision();
+				}
+			}
+		}
+	}
+#pragma endregion
+}
+
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {
 	//bullet_の開放
 	for (PlayerBullet* playerBullet : playerBullets_) {
 		delete playerBullet;
+	}
+	//enemy_の開放
+	for (std::unique_ptr<Enemy>& enemy : enemies_) {
+		delete enemy.release();
 	}
 }
 
@@ -36,6 +95,20 @@ void GameScene::Initialize() {
 	modelEnemyBody_.reset(Model::CreateFromOBJ("enemy_body", true));
 	modelEnemyL_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
 	modelEnemyR_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
+
+	// 画像
+	tex_ = TextureManager::Load("UI/tutorial.png");
+	sprites_.reset(Sprite::Create(tex_, { 0.0f, 0.0f }));
+	sprites_->SetSize({ 852.0f, 480.0f });
+	sprites_->SetTextureRect(
+		{
+			0.0f,
+			0.0f,
+		},
+		{ 1280.0f, 720.0f });
+	sprites_->SetPosition({ 228.0f, 120.0f });
+
+	transition_ = TransitionEffect::GetInstance();
 
 	//ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -61,10 +134,8 @@ void GameScene::Initialize() {
 		modelWeapon_.get()
 	};
 	player_ = std::make_unique<Player>();
+	player_->SetGameScene(this);
 	player_->Initialize(playerModels);
-
-	//デバッグカメラ
-	debugCamera_ = new DebugCamera(WinApp::kWindowHeight, WinApp::kWindowWidth);
 
 	//追従カメラ
 	followCamera_ = std::make_unique<FollowCamera>();
@@ -77,7 +148,6 @@ void GameScene::Initialize() {
 
 	//エネミー
 	enemyCount = 0;
-	UpdateEnemyPopCommands();
 
 	//ロックオン
 	lockOn_ = std::make_unique<LockOn>();
@@ -87,23 +157,14 @@ void GameScene::Initialize() {
 	AxisIndicator::GetInstance()->SetVisible(true);
 	//軸方向が参照するビュープロジェクションを指定する(アドレスなし)
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
+
+	isTutorial = true;
 }
 
 void GameScene::Update() {
-	//デバッグカメラの更新
-#ifdef _DEBUG
-	if (input_->TriggerKey(DIK_RETURN)) {
-		if (isDebugCameraActive_ != 1) {
-			isDebugCameraActive_ = true;
-		}
-		else {
-			isDebugCameraActive_ = false;
-		}
-	}
-#endif
 
 	//ゲームパッドの状態を得る変数(XINPUT)
-	//XINPUT_STATE joyState;
+	XINPUT_STATE joyState;
 
 	//スカイドーム
 	skydome_->Update();
@@ -111,47 +172,115 @@ void GameScene::Update() {
 	//グラウンド
 	ground_->Update();
 
-	//プレイヤー
-	player_->Update();
+	if (isTutorial) {
 
-	//自弾更新
-	for (PlayerBullet* playerBullet : playerBullets_) {
-		playerBullet->Update();
-	}
-	//デスフラグの立った弾を削除
-	playerBullets_.remove_if([](PlayerBullet* playerBullet) {
-		if (playerBullet->IsDead()) {
-			delete playerBullet;
-			return true;
+		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+			//Rトリガーを押していたら
+			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+				isTutorial = false;
+			}
 		}
-		return false;
-		}
-	);
-
-	//敵の発生と更新
-	UpdateEnemyPopCommands();
-	for (std::unique_ptr<Enemy>& enemy : enemies_) {
-		enemy->Update();
-	}
-
-	//ロックオン
-	lockOn_->Update(enemies_, viewProjection_);
-
-	//カメラ
-	if (isDebugCameraActive_) {
-		//デバッグカメラの更新
-		debugCamera_->Update();
-		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
 	}
 	else {
+
+		//プレイヤー
+		player_->Update();
+
+		//自弾更新
+		for (PlayerBullet* playerBullet : playerBullets_) {
+			playerBullet->Update();
+		}
+		//デスフラグの立った弾を削除
+		playerBullets_.remove_if([](PlayerBullet* playerBullet) {
+			if (playerBullet->IsDead()) {
+				delete playerBullet;
+				return true;
+			}
+			return false;
+			}
+		);
+
+		//敵の発生と更新
+		UpdateEnemyPopCommands();
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			enemy->Update();
+		}
+		//デスフラグの立った敵を削除
+		enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+			if (enemy->IsDead()) {
+				delete enemy.release();
+				return true;
+			}
+			return false;
+			}
+		);
+
+		//ロックオン
+		lockOn_->Update(enemies_, viewProjection_);
+
+		if (lockOn_->IsLockOn()) {
+			player_->SetLockOnPosition(lockOn_->GetLockOnPosition());
+		}
+
 		//追従カメラ
 		followCamera_->Update();
 		viewProjection_.matView = followCamera_->GetViewProjection().matView;
 		viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
+		//ビュープロジェクション行列の転送
+		viewProjection_.TransferMatrix();
+
+		CheckAllCollisions();
+
 	}
-	//ビュープロジェクション行列の転送
-	viewProjection_.TransferMatrix();
+
+	if (transition_->GetIsChangeScene()) {
+
+		// ゲームシーンにフェードインする時、またはゲームシーンからフェードアウトする時更新
+
+		if ((transition_->GetFadeIn() && transition_->GetNextScene() == CLEAR) ||
+			(transition_->GetFadeIn() && transition_->GetNextScene() == GAMEOVER) ||
+			(transition_->GetFadeIn() && transition_->GetNextScene() == RESET) ||
+			(transition_->GetFadeOut() && transition_->GetNextScene() == GAME)) {
+			transition_->Update();
+		}
+		// ゲームシーンからのフェードアウト終了でシーン遷移を止める
+		else if (transition_->GetFadeIn() && transition_->GetNextScene() == GAME) {
+			transition_->SetIsChangeScene(false);
+			transition_->Reset();
+		}
+		// ゲームシーンへのフェードインが完了したら
+		else {
+			// 実際に遷移する
+			transition_->ChangeScene();
+		}
+	}
+
+	if (CheckAllEnemyIsDead()) {
+		isGameClear_ = true;
+	}
+	else if (CheckPlayerIsDead()) {
+		isGameOver_ = true;
+	}
+	// シーンチェンジ
+	if (isGameClear_ || isGameOver_) {
+		if (isGameClear_) { transition_->SetNextScene(CLEAR); }
+		else if (isGameOver_) { transition_->SetNextScene(GAMEOVER); }
+		transition_->SetIsChangeScene(true);
+	}
+
+#ifdef _DEBUG
+
+	ImGui::Begin("window");
+	if (ImGui::TreeNode("enemyCount")) {
+		ImGui::Text("count : %d", enemyCount);
+		ImGui::Text("count : %d", killEnemyCount_);
+		ImGui::Text("clear : %d", isGameClear_);
+		ImGui::Text("over : %d", isGameOver_);
+		ImGui::TreePop();
+	}
+	ImGui::End();
+
+#endif // _DEBUG
 }
 
 void GameScene::Draw() {
@@ -209,6 +338,14 @@ void GameScene::Draw() {
 
 	lockOn_->Draw();
 
+	if (isTutorial) {
+		// タイトルの表示
+		sprites_->Draw();
+	}
+
+	// 画面遷移の描画
+	transition_->Draw();
+
 	// スプライト描画後処理
 	Sprite::PostDraw();
 
@@ -233,8 +370,8 @@ void GameScene::UpdateEnemyPopCommands() {
 	}
 
 	//待機開始
-	isWait = true;
-	waitTimer = 5;
+	/*isWait = true;
+	waitTimer = 5;*/
 }
 
 //敵発生関数
@@ -246,6 +383,7 @@ void GameScene::EnemyPop(Vector3 pos) {
 		modelEnemyR_arm_.get()
 	};
 
+	enemyCount++;
 	//敵の生成
 	std::unique_ptr<Enemy> newEnemy = std::make_unique<Enemy>();
 
@@ -256,7 +394,6 @@ void GameScene::EnemyPop(Vector3 pos) {
 
 	//リストに敵を登録する, std::moveでユニークポインタの所有権移動
 	enemies_.push_back(std::move(newEnemy));
-	enemyCount++;
 
 	//イテレータ
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
@@ -272,4 +409,44 @@ void GameScene::EnemyPop(Vector3 pos) {
 void GameScene::AddPlayerBullet(PlayerBullet* playerBullet) {
 	//リストに登録する
 	playerBullets_.push_back(playerBullet);
+}
+
+void GameScene::Reset() {
+
+	player_->Reset();
+
+	enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+		delete enemy.release();
+		return true;
+		});
+	playerBullets_.remove_if([](PlayerBullet* bullet) {
+		delete bullet;
+		return true;
+		});
+
+	enemyCount = 0;
+	killEnemyCount_ = 0;
+
+	isGameClear_ = false;
+	isGameOver_ = false;
+	isTutorial = true;
+}
+
+bool GameScene::CheckAllEnemyIsDead() {
+	if (killEnemyCount_ >= 10) {
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			if (enemy->IsDead()) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+bool GameScene::CheckPlayerIsDead() {
+	if (player_->IsDead() == false) {
+		return false;
+	}
+
+	return true;
 }

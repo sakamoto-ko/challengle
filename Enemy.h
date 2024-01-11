@@ -38,6 +38,8 @@ private:
 
 	bool isAppear_ = false;
 
+	bool isDead_ = false;
+
 public:
 	Enemy();
 	~Enemy();
@@ -60,5 +62,12 @@ public:
 	Vector3 GetCenterPosition();
 	const Vector3 constGetCenterPosition();
 
+	bool IsDead() const { return isDead_; }
+
+	//衝突を検出したら呼び出されるコールバック関数	
+	void OnCollision();
+
 	//const Enemy GetEnemy() { return *this; }
+	Vector3 GetWorldPosition();
+
 };

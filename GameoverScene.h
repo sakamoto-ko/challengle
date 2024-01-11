@@ -19,18 +19,18 @@
 /// <summary>
 /// タイトルシーン
 /// </summary>
-class TitleScene {
+class GameoverScene {
 
 public: // メンバ関数
 	/// <summary>
 	/// コンストクラタ
 	/// </summary>
-	TitleScene();
+	GameoverScene();
 
 	/// <summary>
 	/// デストラクタ
 	/// </summary>
-	~TitleScene();
+	~GameoverScene();
 
 	/// <summary>
 	/// 初期化

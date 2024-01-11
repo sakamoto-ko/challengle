@@ -1,11 +1,11 @@
-#include "TitleScene.h"
+#include "GameoverScene.h"
 #include "TextureManager.h"
 #include <cassert>
 
-TitleScene::TitleScene() {}
-TitleScene::~TitleScene() {}
+GameoverScene::GameoverScene() {}
+GameoverScene::~GameoverScene() {}
 
-void TitleScene::Initialize() {
+void GameoverScene::Initialize() {
 
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
@@ -14,7 +14,7 @@ void TitleScene::Initialize() {
 	transition_ = TransitionEffect::GetInstance();
 
 	// 画像
-	tex_ = TextureManager::Load("UI/title.png");
+	tex_ = TextureManager::Load("UI/gameover.png");
 	sprite_.reset(Sprite::Create(tex_, { 0.0f, 0.0f }));
 	sprite_->SetSize({ 1280.0f, 720.0f });
 	sprite_->SetTextureRect(
@@ -26,7 +26,7 @@ void TitleScene::Initialize() {
 	sprite_->SetPosition({ 0.0f, 0.0f });
 }
 
-void TitleScene::Update() {
+void GameoverScene::Update() {
 
 	// シーンチェンジ/ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
@@ -35,14 +35,12 @@ void TitleScene::Update() {
 	if (transition_->GetIsChangeScene()) {
 
 		// ゲームシーンにフェードインする時、またはゲームシーンからフェードアウトする時更新
-		if(
-			(transition_->GetFadeIn() && transition_->GetNextScene() == GAME) ||
-			(transition_->GetFadeOut() && transition_->GetNextScene() == TITLE)
-		){
+		if ((transition_->GetFadeIn() && transition_->GetNextScene() == TITLE) ||
+			(transition_->GetFadeOut() && transition_->GetNextScene() == GAMEOVER)) {
 			transition_->Update();
 		}
 		// ゲームシーンからのフェードアウト終了でシーン遷移を止める
-		else if (transition_->GetFadeIn() && transition_->GetNextScene() == TITLE) {
+		else if (transition_->GetFadeIn() && transition_->GetNextScene() == GAMEOVER) {
 			transition_->SetIsChangeScene(false);
 			transition_->Reset();
 		}
@@ -54,19 +52,19 @@ void TitleScene::Update() {
 	}
 	// シーンチェンジしていない時の処理
 	else {
-
+		// シーンチェンジ
 		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 			//Rトリガーを押していたら
 			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 				transition_->SetIsChangeScene(true);
 				// 遷移先のシーンをゲームにする
-				transition_->SetNextScene(GAME);
+				transition_->SetNextScene(TITLE);
 			}
 		}
 	}
 }
 
-void TitleScene::Draw() {
+void GameoverScene::Draw() {
 	// コマンドリストの取得
 	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
 
@@ -106,7 +104,7 @@ void TitleScene::Draw() {
 
 	// タイトルの表示
 	sprite_->Draw();
-	
+
 	// 画面遷移の描画
 	transition_->Draw();
 

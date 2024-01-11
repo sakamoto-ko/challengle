@@ -19,18 +19,18 @@
 /// <summary>
 /// タイトルシーン
 /// </summary>
-class TitleScene {
+class ClearScene {
 
 public: // メンバ関数
 	/// <summary>
 	/// コンストクラタ
 	/// </summary>
-	TitleScene();
+	ClearScene();
 
 	/// <summary>
 	/// デストラクタ
 	/// </summary>
-	~TitleScene();
+	~ClearScene();
 
 	/// <summary>
 	/// 初期化
