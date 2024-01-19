@@ -44,6 +44,10 @@ public:
 
 	bool TriggerL();
 
+	Vector3 GetTargetPosition() const;
+
+	bool ExistTarget() const { return target_ ? true : false; }
+
 private:
 	Input* input_ = nullptr;
 

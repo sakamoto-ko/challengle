@@ -18,7 +18,7 @@ void LockOn::Initialize() {
 
 void LockOn::Update(const std::list<std::unique_ptr<Enemy>>& enemies, const ViewProjection& viewProjection) {
 	//ロックオン中なら
-	if (target_) {
+	if (ExistTarget()) {
 		//Lトリガーを押していたら
 		if (TriggerL()) {
 			//ロックオン解除
@@ -38,7 +38,7 @@ void LockOn::Update(const std::list<std::unique_ptr<Enemy>>& enemies, const View
 	}
 
 	//ロックオン継続
-	if (target_) {
+	if (ExistTarget()) {
 		/*ロックオンマークの座標計算*/
 		//敵のロックオン座標取得
 		Vector3 positionWorld = GetLockOnPosition();
@@ -53,7 +53,7 @@ void LockOn::Update(const std::list<std::unique_ptr<Enemy>>& enemies, const View
 
 void LockOn::Draw() {
 	//ロックオンしていれば
-	if (target_) {
+	if (ExistTarget()) {
 		sprite2DReticle_->Draw();
 	}
 }
@@ -177,4 +177,12 @@ bool LockOn::TriggerL() {
 	}
 
 	return false;
+}
+
+Vector3 LockOn::GetTargetPosition() const
+{
+	if (ExistTarget()) {
+		return target_->GetCenterPosition();
+	}
+	return Vector3();
 }

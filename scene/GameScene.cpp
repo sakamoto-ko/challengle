@@ -58,6 +58,14 @@ void GameScene::Initialize() {
 	player_ = std::make_unique<Player>();
 	player_->Initialize(playerModels);
 
+	//エネミー
+	LoadEnemyPopData();
+	UpdateEnemyPopCommands();
+
+	//ロックオン
+	lockOn_ = std::make_unique<LockOn>();
+	lockOn_->Initialize();
+
 	//デバッグカメラ
 	debugCamera_ = new DebugCamera(WinApp::kWindowHeight, WinApp::kWindowWidth);
 
@@ -69,14 +77,10 @@ void GameScene::Initialize() {
 	player_->GetViewProjection(&followCamera_->GetViewProjection());
 	//自キャラのワールドトランスフォームを追従カメラにセット
 	followCamera_->SetTarget(&player_->GetWorldTransform());
-
-	//エネミー
-	LoadEnemyPopData();
-	UpdateEnemyPopCommands();
-
-	//ロックオン
-	lockOn_ = std::make_unique<LockOn>();
-	lockOn_->Initialize();
+	//ロックオン座標を自キャラにわたす
+	player_->SetLockOn(lockOn_.get());
+	//ロックオン座標をカメラにわたす
+	followCamera_->SetLockOn(lockOn_.get());
 
 	//軸方向の表示を有効にする
 	AxisIndicator::GetInstance()->SetVisible(true);

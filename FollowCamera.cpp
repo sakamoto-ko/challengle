@@ -16,11 +16,26 @@ void FollowCamera::Initialize() {
 void FollowCamera::Update() {
 	//ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
-	//ジョイスティック状態取得
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		const float rotate = 0.01f;
-		viewProjection_.rotation_.y += (float)joyState.Gamepad.sThumbRX / SHRT_MAX * rotate;
+
+	//ロックオン中であれば	
+	if (lockOn_ && lockOn_->ExistTarget()) {
+		//カメラをロックオン対象に向ける
+		//ロックオン座標取得
+		Vector3 lockOnPosition = lockOn_->GetTargetPosition();
+		//追従対象からロックオン対象へのベクトル	
+		Vector3 sub = Subtract(lockOnPosition, target_->translation_);
+
+		//Y軸周り角度
+		viewProjection_.rotation_.y = std::atan2(sub.x, sub.z);
 	}
+	else {
+		//スティックで角度を取得
+		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+			const float rotate = 0.01f;
+			viewProjection_.rotation_.y += (float)joyState.Gamepad.sThumbRX / SHRT_MAX * rotate;
+		}
+	}
+
 	//追従対象がいれば
 	if (target_) {
 		//追従対象からカメラまでのオフセット

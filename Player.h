@@ -2,6 +2,8 @@
 #include "BaseCharactor.h"
 #include <optional>
 
+class LockOn;
+
 class Player : public BaseCharacter{
 private:
 	//カメラのビュープロジェクション
@@ -40,9 +42,18 @@ private:
 	//次のふるまいリクエスト
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
-	int isAttack = false;
-	int isJump = false;
-	int afterAttackStay = 20;
+	int isAttack_ = false;
+	int isJump_ = false;
+	int afterAttackStay_ = 20;
+
+	//ロックオン
+	const LockOn* lockOn_ = nullptr;
+
+	bool isSwingUp_ = false;
+	bool isSwingDown_ = false;
+
+	float speed_ = 0.1f;
+	int attackTime_ = 0;
 
 public:
 	Player();
@@ -80,4 +91,12 @@ public:
 	void ApplyGlobalVariables();
 
 	void Move(float y);
+
+	void SetLockOn(const LockOn* lockOn) { lockOn_ = lockOn; }
+
+	void AllWorldTransformUpdateMatrix();
+
+	void SetBehavior(Behavior behavior){ behaviorRequest_ = behavior; }
+
+	void Reset(const std::vector<Model*>& models);
 };
