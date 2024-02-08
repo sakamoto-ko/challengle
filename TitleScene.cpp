@@ -15,6 +15,9 @@ void TitleScene::Initialize() {
 
 	// 画像
 	tex_ = TextureManager::Load("UI/title.png");
+	nameTex_ = TextureManager::Load("UI/titleName.png");
+	pressATex_ = TextureManager::Load("UI/pressA.png");
+
 	sprite_.reset(Sprite::Create(tex_, { 0.0f, 0.0f }));
 	sprite_->SetSize({ 1280.0f, 720.0f });
 	sprite_->SetTextureRect(
@@ -24,6 +27,29 @@ void TitleScene::Initialize() {
 		},
 		{ 1280.0f, 720.0f });
 	sprite_->SetPosition({ 0.0f, 0.0f });
+
+	name_.reset(Sprite::Create(nameTex_, { 0.0f, 0.0f }));
+	name_->SetSize({ 1280.0f, 720.0f });
+	name_->SetTextureRect(
+		{
+			0.0f,
+			0.0f,
+		},
+		{ 1280.0f, 720.0f });
+	name_->SetPosition({ 0.0f, -450.0f + move });
+
+	pressA_.reset(Sprite::Create(pressATex_, { 0.0f, 0.0f }));
+	pressA_->SetSize({ 1280.0f, 720.0f });
+	pressA_->SetTextureRect(
+		{
+			0.0f,
+			0.0f,
+		},
+		{ 1280.0f, 720.0f });
+	pressA_->SetPosition({ 0.0f, 0.0f });
+
+	isMoveTitleName_ = false;
+	move = 0.0f;
 }
 
 void TitleScene::Update() {
@@ -31,14 +57,16 @@ void TitleScene::Update() {
 	// シーンチェンジ/ゲームパッドの状態を得る変数(XINPUT)
 	XINPUT_STATE joyState;
 
+	name_->SetPosition({ 0.0f, -450.0f + move });
+
 	// シーンチェンジ中の処理
 	if (transition_->GetIsChangeScene()) {
 
 		// ゲームシーンにフェードインする時、またはゲームシーンからフェードアウトする時更新
-		if(
+		if (
 			(transition_->GetFadeIn() && transition_->GetNextScene() == GAME) ||
 			(transition_->GetFadeOut() && transition_->GetNextScene() == TITLE)
-		){
+			) {
 			transition_->Update();
 		}
 		// ゲームシーンからのフェードアウト終了でシーン遷移を止める
@@ -54,13 +82,22 @@ void TitleScene::Update() {
 	}
 	// シーンチェンジしていない時の処理
 	else {
-
-		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-			//Rトリガーを押していたら
-			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
-				transition_->SetIsChangeScene(true);
-				// 遷移先のシーンをゲームにする
-				transition_->SetNextScene(GAME);
+		if (isMoveTitleName_) {
+			if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+				//Rトリガーを押していたら
+				if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+					transition_->SetIsChangeScene(true);
+					// 遷移先のシーンをゲームにする
+					transition_->SetNextScene(GAME);
+				}
+			}
+		}
+		else {
+			if (move >= 270.0f) {
+				isMoveTitleName_ = true;
+			}
+			else {
+				move += 3.0f;
 			}
 		}
 	}
@@ -106,7 +143,11 @@ void TitleScene::Draw() {
 
 	// タイトルの表示
 	sprite_->Draw();
-	
+	name_->Draw();
+	if (isMoveTitleName_) {
+		pressA_->Draw();
+	}
+
 	// 画面遷移の描画
 	transition_->Draw();
 
@@ -114,4 +155,10 @@ void TitleScene::Draw() {
 	Sprite::PostDraw();
 
 #pragma endregion
+}
+
+void TitleScene::SetMoveTitleName(bool flag)
+{
+	move = 0.0f;
+	isMoveTitleName_ = flag;
 }

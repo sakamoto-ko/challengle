@@ -53,6 +53,10 @@ public: // メンバ関数
 	// シーン遷移セッター
 	void SetChangeGameScene(bool flag) { isChangeGameScene_ = flag; }
 
+	bool GetMoveTitleName() { return isMoveTitleName_; }
+
+	void SetMoveTitleName(bool flag);
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -64,9 +68,16 @@ private: // メンバ変数
 
 	// 画像
 	uint32_t tex_ = 0u;
+	uint32_t nameTex_ = 0u;
+	uint32_t pressATex_ = 0u;
 
 	// スプライト
 	std::unique_ptr<Sprite> sprite_;
+	std::unique_ptr<Sprite> name_;
+	std::unique_ptr<Sprite> pressA_;
 
 	bool isChangeGameScene_ = false;
+
+	bool isMoveTitleName_ = false;
+	float move = 0.0f;
 };

@@ -15,6 +15,8 @@ void ClearScene::Initialize() {
 
 	// 画像
 	tex_ = TextureManager::Load("UI/clear.png");
+	pressATex_ = TextureManager::Load("UI/pressA.png");
+
 	sprite_.reset(Sprite::Create(tex_, { 0.0f, 0.0f }));
 	sprite_->SetSize({ 1280.0f, 720.0f });
 	sprite_->SetTextureRect(
@@ -24,6 +26,16 @@ void ClearScene::Initialize() {
 		},
 		{ 1280.0f, 720.0f });
 	sprite_->SetPosition({ 0.0f, 0.0f });
+
+	pressA_.reset(Sprite::Create(pressATex_, { 0.0f, 0.0f }));
+	pressA_->SetSize({ 1280.0f, 720.0f });
+	pressA_->SetTextureRect(
+		{
+			0.0f,
+			0.0f,
+		},
+		{ 1280.0f, 720.0f });
+	pressA_->SetPosition({ 0.0f, 0.0f });
 }
 
 void ClearScene::Update() {
@@ -107,6 +119,7 @@ void ClearScene::Draw() {
 
 	// タイトルの表示
 	sprite_->Draw();
+	pressA_->Draw();
 
 	// 画面遷移の描画
 	transition_->Draw();

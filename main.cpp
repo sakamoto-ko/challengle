@@ -131,6 +131,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				gameScene->Reset();
 				isReset = true;
 			}
+			if (titleScene->GetMoveTitleName()) {
+				titleScene->SetMoveTitleName(false);
+			}
 
 			// ゲームシーンの毎フレーム処理
 			gameScene->Update();

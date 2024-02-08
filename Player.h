@@ -47,6 +47,8 @@ private:
 	//ロックオン
 	const LockOn* lockOn_ = nullptr;
 
+	bool isDead_ = false;
+
 public:
 	Player();
 	~Player();
@@ -95,6 +97,8 @@ public:
 	void SetBehaviorRoot();
 
 	void Reset(const std::vector<Model*>& models);
+
+	bool IsDead() const { return isDead_; }
 
 	//衝突コールバック関数
 	void OnCollision([[maybe_unused]] Collider* other) override;

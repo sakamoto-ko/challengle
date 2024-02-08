@@ -32,6 +32,9 @@ private:
 	//ゲームシーン
 	GameScene* gameScene_ = nullptr;
 
+	bool isDead_ = false;
+	bool isCheckDead_ = false;
+
 public:
 	Enemy();
 	~Enemy();
@@ -47,12 +50,23 @@ public:
 
 	void GetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+
+	bool IsDead() const { return isDead_; }
+	bool IsCheckDeaad() const { return isCheckDead_; }
+	void SetReturnDead(bool flag) { isCheckDead_ = flag; }
+
+	void Reset(const std::vector<Model*>& models);
+
 	//中心座標を取得
 	//<returns">中心座標</returns>
 	Vector3 GetCenterPos();
 	const Vector3 constGetCenterPosition();
 
 	Vector3 GetCenterPosition() const override;
+
+	//衝突コールバック関数
+	void OnCollision([[maybe_unused]] Collider* other) override;
+	//void OnCollision() override;
 
 	//const Enemy GetEnemy() { return *this; }
 };

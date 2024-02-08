@@ -9,7 +9,12 @@
 
 GameScene::GameScene() {}
 
-GameScene::~GameScene() {}
+GameScene::~GameScene() {
+	//enemy_の開放
+	for (std::unique_ptr<Enemy>& enemy : enemies_) {
+		delete enemy.release();
+	}
+}
 
 void GameScene::Initialize() {
 
@@ -63,13 +68,6 @@ void GameScene::Initialize() {
 	ground_ = std::make_unique<Ground>();
 	ground_->Initialize(modelGround_.get());
 
-	//衝突マネージャの生成
-	std::vector<Model*>playerColliders= {
-		modelCollider_.get(),
-	};
-	collisionManager_ = std::make_unique<CollisionManager>();
-	collisionManager_->Initialize(playerColliders);
-
 	//プレイヤー
 	std::vector<Model*>playerModels = {
 		modelFace_.get(),
@@ -89,7 +87,7 @@ void GameScene::Initialize() {
 	weapon_->SetParent(&player_->GetWorldTransform());
 
 	//エネミー
-	enemyCount = 0;
+	enemyCount = 5;
 
 	//エネミー
 	LoadEnemyPopData();
@@ -117,12 +115,19 @@ void GameScene::Initialize() {
 	//ロックオン座標を武器にわたす
 	weapon_->SetLockOn(lockOn_.get());
 
+	//衝突マネージャの生成
+	std::vector<Model*>playerColliders = {
+		modelCollider_.get(),
+	};
+	collisionManager_ = std::make_unique<CollisionManager>();
+	collisionManager_->Initialize(playerColliders);
+
 	//軸方向の表示を有効にする
 	AxisIndicator::GetInstance()->SetVisible(true);
 	//軸方向が参照するビュープロジェクションを指定する(アドレスなし)
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
 
-	isTutorial = true; 
+	isTutorial = true;
 }
 
 void GameScene::Update() {
@@ -181,7 +186,20 @@ void GameScene::Update() {
 		UpdateEnemyPopCommands();
 		for (std::unique_ptr<Enemy>& enemy : enemies_) {
 			enemy->Update();
+			if (enemy->IsCheckDeaad()) {
+				enemyCount--;
+				enemy->SetReturnDead(false);
+			}
 		}
+		//デスフラグの立った敵を削除
+		/*enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+			if (enemy->IsDead()) {
+				delete enemy.release();
+				return true;
+			}
+			return false;
+			}
+		);*/
 
 		//ロックオン
 		lockOn_->Update(enemies_, viewProjection_);
@@ -409,7 +427,7 @@ void GameScene::EnemyPop(Vector3 pos) {
 
 	//敵の生成
 	std::unique_ptr<Enemy> newEnemy = std::make_unique<Enemy>();
-	
+
 	//初期化
 	newEnemy->Initialize(enemyModels);
 	//リストに敵を登録する, std::moveでユニークポインタの所有権移動
@@ -438,7 +456,9 @@ void GameScene::CheckAllColisions()
 	collisionManager_->AddCollider(weapon_.get());
 	//敵全てについて
 	for (const std::unique_ptr<Enemy>& enemy : enemies_) {
-		collisionManager_->AddCollider(enemy.get());
+		if (!enemy->IsDead()) {
+			collisionManager_->AddCollider(enemy.get());
+		}
 	}
 
 	//衝突判定と応答
@@ -447,15 +467,26 @@ void GameScene::CheckAllColisions()
 
 void GameScene::Reset() {
 
-	player_->Reset();
+	std::vector<Model*>playerModels = {
+		modelFace_.get(),
+		modelBody_.get(),
+		modelL_arm_.get(),
+		modelR_arm_.get(),
+	};
+	player_->Reset(playerModels);
 
-	enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+	enemyCount = 5;
+
+	//エネミー
+	/*enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+	if (enemy->IsDead()) {
 		delete enemy.release();
 		return true;
-		});
-
-	enemyCount = 0;
-	killEnemyCount_ = 0;
+	}
+	return false;
+}
+); */
+	UpdateEnemyPopCommands();
 
 	isGameClear_ = false;
 	isGameOver_ = false;
@@ -463,7 +494,7 @@ void GameScene::Reset() {
 }
 
 bool GameScene::CheckAllEnemyIsDead() {
-	if (killEnemyCount_ >= 10) {
+	if (enemyCount < 1) {
 		for (std::unique_ptr<Enemy>& enemy : enemies_) {
 			if (enemy->IsDead()) {
 				return true;

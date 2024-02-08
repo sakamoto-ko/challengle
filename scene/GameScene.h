@@ -157,7 +157,7 @@ private: // メンバ変数
 	//衝突マネージャ
 	std::unique_ptr<Weapon> weapon_;
 
-	int enemyCount = 0;
+	int enemyCount = 5;
 
 	bool isReset_ = false;
 

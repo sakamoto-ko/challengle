@@ -64,9 +64,11 @@ private: // メンバ変数
 
 	// 画像
 	uint32_t tex_ = 0u;
+	uint32_t pressATex_ = 0u;
 
 	// スプライト
 	std::unique_ptr<Sprite> sprite_;
+	std::unique_ptr<Sprite> pressA_;
 
 	bool isChangeGameScene_ = false;
 };

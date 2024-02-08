@@ -93,6 +93,9 @@ void Enemy::Initialize(const std::vector<Model*>& models) {
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
 
+	isDead_ = false; 
+	isCheckDead_ = false;
+
 }
 void Enemy::Update() {
 	//既定クラスの更新
@@ -111,9 +114,39 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	//既定クラスの描画
 	//BaseCharacter::Draw(viewProjection);
 
-	models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
-	models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
-	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	if (!isDead_) {
+		models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
+		models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
+		models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	}
+}
+
+void Enemy::Reset(const std::vector<Model*>& models)
+{
+	//既定クラスの初期化
+	BaseCharacter::Initialize(models);
+
+	//base
+	worldTransform_.Initialize();
+	worldTransform_.translation_.y = 2.0f;
+	//体
+	worldTransformBody_.Initialize();
+	worldTransformBody_.parent_ = &worldTransform_;
+	//左腕
+	worldTransformL_arm_.Initialize();
+	worldTransformL_arm_.parent_ = &worldTransformBody_;
+	worldTransformL_arm_.translation_.z -= 2.5f;
+	//右腕
+	worldTransformR_arm_.Initialize();
+	worldTransformR_arm_.parent_ = &worldTransformBody_;
+	worldTransformR_arm_.translation_.z += 2.5f;
+
+	InitializeMoveGimmick();
+
+	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
+
+	isDead_ = false;
+	isCheckDead_ = false;
 }
 
 Vector3 Enemy::GetCenterPos() {
@@ -143,4 +176,17 @@ Vector3 Enemy::GetCenterPosition() const
 	Vector3 worldPos = TransformNormal(offset, worldTransform_.matWorld_);
 
 	return worldPos;
+}
+
+void Enemy::OnCollision(Collider* other)
+{
+	if (!isDead_) {
+		//衝突相手の種別IDを取得
+		uint32_t typeID = other->GetTypeID();
+		//衝突相手が敵なら
+		if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPlayerWeapon)) {
+			isDead_ = true;
+			isCheckDead_ = true;
+		}
+	}
 }

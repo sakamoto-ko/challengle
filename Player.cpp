@@ -42,7 +42,9 @@ void Player::Reset(const std::vector<Model*>& models)
 
 	//ワールド変換の初期化
 	worldTransform_.Initialize();
-	worldTransform_.translation_.y = 3.0f;
+	worldTransform_.translation_ = { 0.0f,3.0f,0.0f };
+	worldTransform_.rotation_ = { 0.0f,0.0f,0.0f };
+	worldTransform_.scale_ = { 1.0f,1.0f,1.0f };
 	//体
 	worldTransformBody_.Initialize();
 	worldTransformBody_.parent_ = &worldTransform_;
@@ -64,10 +66,13 @@ void Player::Reset(const std::vector<Model*>& models)
 	//浮遊ギミック初期化
 	InitializeFloatingGimmick();
 
+	isDead_ = false;
 	isAttack_ = false;
 	isJump_ = false;
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+
+	AllWorldTransformUpdateMatrix();
 }
 
 void Player::OnCollision([[maybe_unused]] Collider* other)
@@ -77,9 +82,7 @@ void Player::OnCollision([[maybe_unused]] Collider* other)
 	uint32_t typeID = other->GetTypeID();
 	//衝突相手が敵なら
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
-		//ジャンプリクエスト
-		SetBehavior(Behavior::kJump);
-		isJump_ = true;
+		isDead_ = true;
 	}
 }
 
@@ -317,10 +320,12 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	//既定クラスの描画
 	//BaseCharacter::Draw(viewProjection);
 
-	models_[kModelFace]->Draw(worldTransformFace_, viewProjection);
-	models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
-	models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
-	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	if (!isDead_) {
+		models_[kModelFace]->Draw(worldTransformFace_, viewProjection);
+		models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
+		models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
+		models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
+	}
 }
 
 //ジャンプ行動初期化
