@@ -11,6 +11,8 @@
 #include "Ground.h"
 #include "FollowCamera.h"
 #include "LockOn.h"
+#include "CollisionManager.h"
+#include "Weapon.h"
 
 /// <summary>
 /// ゲームシーン
@@ -58,6 +60,9 @@ public: // メンバ関数
 	Vector3 GetEnemyPopPos() { return enemyPopPos; }
 	void SetEnemyPopPos(Vector3 pos) { enemyPopPos = pos; }
 
+	//衝突判定
+	void CheckAllColisions();
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -80,10 +85,13 @@ private: // メンバ変数
 	std::unique_ptr<Model> modelL_arm_;
 	std::unique_ptr<Model> modelR_arm_;
 	std::unique_ptr<Model> modelWeapon_;
+	std::unique_ptr<Model> modelHiEffect_;
 	//エネミーモデル
 	std::unique_ptr<Model> modelEnemyBody_;
 	std::unique_ptr<Model> modelEnemyL_arm_;
 	std::unique_ptr<Model> modelEnemyR_arm_;
+	//デバッグ用モデル
+	std::unique_ptr<Model> modelCollider_;
 
 	//ワールドトランスフォーム
 	WorldTransform worldTransform_;
@@ -122,4 +130,10 @@ private: // メンバ変数
 
 	//ロックオン
 	std::unique_ptr<LockOn> lockOn_;
+
+	//衝突マネージャ
+	std::unique_ptr<CollisionManager> collisionManager_;
+
+	//衝突マネージャ
+	std::unique_ptr<Weapon> weapon_;
 };

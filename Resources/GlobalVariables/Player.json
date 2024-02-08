@@ -1,12 +1,12 @@
 {
     "Player": {
         "ArmL Translation": [
-            0.75,
+            0.0,
             0.0,
             0.0
         ],
         "ArmR Translation": [
-            -0.75,
+            0.0,
             0.0,
             0.0
         ],
@@ -14,10 +14,6 @@
             0.0,
             0.0,
             0.0
-        ],
-        "Test": 56,
-        "floatingAmplitude": 60.0,
-        "floatingCycle": 45,
-        "idelArmAngleMax": 45.3120002746582
+        ]
     }
 }

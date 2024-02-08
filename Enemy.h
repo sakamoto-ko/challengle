@@ -10,7 +10,6 @@ class GameScene;
 class Enemy : public BaseCharacter
 {
 private:
-	WorldTransform worldTransformBase_;
 	WorldTransform worldTransformBody_;
 	WorldTransform worldTransformL_arm_;
 	WorldTransform worldTransformR_arm_;
@@ -50,8 +49,10 @@ public:
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 	//中心座標を取得
 	//<returns">中心座標</returns>
-	Vector3 GetCenterPosition();
+	Vector3 GetCenterPos();
 	const Vector3 constGetCenterPosition();
+
+	Vector3 GetCenterPosition() const override;
 
 	//const Enemy GetEnemy() { return *this; }
 };

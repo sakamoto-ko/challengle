@@ -13,14 +13,13 @@ private:
 	uint32_t kModelBody = 1;
 	uint32_t kModelL_arm = 2;
 	uint32_t kModelR_arm = 3;
-	uint32_t kModelWeapon = 4;
+	//uint32_t kModelWeapon = 4;
 
-	WorldTransform worldTransformBase_;
 	WorldTransform worldTransformFace_;
 	WorldTransform worldTransformBody_;
 	WorldTransform worldTransformL_arm_;
 	WorldTransform worldTransformR_arm_;
-	WorldTransform worldTransformWeapon_;
+	//WorldTransform worldTransformWeapon_;
 
 	//速度
 	Vector3 velocity_ = {};
@@ -42,18 +41,11 @@ private:
 	//次のふるまいリクエスト
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
-	int isAttack_ = false;
-	int isJump_ = false;
-	int afterAttackStay_ = 20;
+	bool isAttack_ = false;
+	bool isJump_ = false;
 
 	//ロックオン
 	const LockOn* lockOn_ = nullptr;
-
-	bool isSwingUp_ = false;
-	bool isSwingDown_ = false;
-
-	float speed_ = 0.1f;
-	int attackTime_ = 0;
 
 public:
 	Player();
@@ -62,9 +54,11 @@ public:
 	void Update() override;
 	void Draw(const ViewProjection& viewProjection) override;
 
-	const WorldTransform& GetWorldTransform() { return worldTransformBase_; }
+	const WorldTransform& GetWorldTransform() { return worldTransform_; }
 
 	void GetViewProjection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+
+	Vector3 GetCenterPosition() const override;
 
 	//浮遊ギミック初期化
 	void InitializeFloatingGimmick();
@@ -96,7 +90,16 @@ public:
 
 	void AllWorldTransformUpdateMatrix();
 
-	void SetBehavior(Behavior behavior){ behaviorRequest_ = behavior; }
+	void SetBehavior(Behavior behavior) { behaviorRequest_ = behavior; }
+
+	void SetBehaviorRoot();
 
 	void Reset(const std::vector<Model*>& models);
+
+	//衝突コールバック関数
+	void OnCollision([[maybe_unused]] Collider* other) override;
+	//void OnCollision() override;
+
+	bool GetAttack() { return isAttack_; }
+	void SetAttack(bool isAttack) { isAttack_ = isAttack; }
 };

@@ -41,6 +41,17 @@ void GlobalVariables::SetValue(const std::string& groupName, const std::string& 
 	group.items[key] = newItem;
 }
 
+void GlobalVariables::SetValue(const std::string& groupName, const std::string& key, bool value)
+{
+	//グループの参照値を取得
+	Group& group = dates_[groupName];
+	//新しい項目のデータを設定
+	Item newItem{};
+	newItem.value = value;
+	//設定した項目をstd::mapに追加
+	group.items[key] = newItem;
+}
+
 //毎フレーム処理
 void GlobalVariables::Update() {
 	if (!ImGui::Begin("Global Variables", nullptr, ImGuiWindowFlags_MenuBar)) {
@@ -80,10 +91,16 @@ void GlobalVariables::Update() {
 				ImGui::SliderFloat(itemName.c_str(), ptr, 0, 100);
 			}
 
-			//1Vector3型の値を保持していれば
+			//Vector3型の値を保持していれば
 			else if (std::holds_alternative<Vector3>(item.value)) {
 				Vector3* ptr = std::get_if<Vector3>(&item.value);
 				ImGui::SliderFloat3(itemName.c_str(), reinterpret_cast<float*>(ptr), -10.0f, 10.0f);
+			}
+			
+			//bool型の値を保持していれば
+			else if (std::holds_alternative<bool>(item.value)) {
+				bool* ptr = std::get_if<bool>(&item.value);
+				ImGui::Checkbox("isCollider", ptr);
 			}
 		}
 
@@ -141,6 +158,12 @@ void GlobalVariables::SaveFile(const std::string& groupName) {
 			//Vector3型のjson配列登録
 			Vector3 value = std::get<Vector3>(item.value);
 			root[groupName][itemName] = json::array({ value.x,value.y,value.z });
+		}
+
+		//bool型の値を保持していれば
+		else if (std::holds_alternative<bool>(item.value)) {
+			//bool型の値を登録
+			root[groupName][itemName] = std::get<bool>(item.value);
 		}
 	}
 
@@ -244,6 +267,13 @@ void GlobalVariables::LoadFile(const std::string& groupName) {
 			Vector3 value = { itItem->at(0), itItem->at(1), itItem->at(2) };
 			SetValue(groupName, itemName, value);
 		}
+
+		//bool型の配列であれば
+		else if (itItem->is_number_unsigned()) {
+			//bool型のjson配列登録
+			bool value = itItem->get<bool>();
+			SetValue(groupName, itemName, value);
+		}
 	}
 }
 
@@ -272,6 +302,17 @@ void GlobalVariables::AddItem(const std::string& groupName, const std::string& k
 //項目の追加(Vector3)
 void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, const Vector3& value) {
 
+	//グループを検索
+	std::map<std::string, Group>::iterator itGroup = dates_.find(groupName);
+
+	//項目が未登録なら
+	if (itGroup != dates_.end()) {
+		SetValue(groupName, key, value);
+	}
+}
+
+void GlobalVariables::AddItem(const std::string& groupName, const std::string& key, bool value)
+{
 	//グループを検索
 	std::map<std::string, Group>::iterator itGroup = dates_.find(groupName);
 
@@ -318,4 +359,17 @@ Vector3 GlobalVariables::GetVector3Value(const std::string& groupName, const std
 	// 指定グループから指定のキーの値を取得
 	const Item& item = group.items.at(key);
 	return std::get<Vector3>(item.value);
+}
+
+bool GlobalVariables::GetBoolValue(const std::string& groupName, const std::string& key) const
+{
+	// 指定グループが存在している
+	assert(&dates_.at(groupName));
+	// グループの参照を取得
+	const Group& group = dates_.at(groupName);
+	// 指定グループに指定のキーが存在している
+	assert(&group.items.at(key));
+	// 指定グループから指定のキーの値を取得
+	const Item& item = group.items.at(key);
+	return std::get<bool>(item.value);
 }

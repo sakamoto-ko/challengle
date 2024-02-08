@@ -43,11 +43,11 @@ void Enemy::UpdateMoveGimmick() {
 
 	//移動方向に向きを合わせる
 	//Y軸周り角度(θy)
-	worldTransformBase_.rotation_.y = std::atan2(move.x, move.z);
+	worldTransform_.rotation_.y = std::atan2(move.x, move.z);
 
 	//結果ででた位置を中心位置に加算し、それを描画位置とする
-	worldTransformBase_.translation_.x = center.x + add_x;
-	worldTransformBase_.translation_.z = center.z + add_z;
+	worldTransform_.translation_.x = center.x + add_x;
+	worldTransform_.translation_.z = center.z + add_z;
 
 	// 角度更新
 	angle.x += 1.0f;
@@ -75,11 +75,11 @@ void Enemy::Initialize(const std::vector<Model*>& models) {
 	BaseCharacter::Initialize(models);
 
 	//base
-	worldTransformBase_.Initialize();
-	worldTransformBase_.translation_.y = 2.0f;
+	worldTransform_.Initialize();
+	worldTransform_.translation_.y = 2.0f;
 	//体
 	worldTransformBody_.Initialize();
-	worldTransformBody_.parent_ = &worldTransformBase_;
+	worldTransformBody_.parent_ = &worldTransform_;
 	//左腕
 	worldTransformL_arm_.Initialize();
 	worldTransformL_arm_.parent_ = &worldTransformBody_;
@@ -91,10 +91,8 @@ void Enemy::Initialize(const std::vector<Model*>& models) {
 
 	InitializeMoveGimmick();
 
-	worldTransformBase_.UpdateMatrix();
-	worldTransformBody_.UpdateMatrix();
-	worldTransformL_arm_.UpdateMatrix();
-	worldTransformR_arm_.UpdateMatrix();
+	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
+
 }
 void Enemy::Update() {
 	//既定クラスの更新
@@ -102,7 +100,7 @@ void Enemy::Update() {
 
 	assert(gameScene_);
 
-	worldTransformBase_.UpdateMatrix();
+	worldTransform_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
@@ -118,10 +116,10 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
 }
 
-Vector3 Enemy::GetCenterPosition() {
+Vector3 Enemy::GetCenterPos() {
 	const Vector3 offset = { -1.1f,1.1f,0.0f };
 
-	Vector3 result = TransformNormal(offset, worldTransformBase_.matWorld_);
+	Vector3 result = TransformNormal(offset, worldTransform_.matWorld_);
 
 	// TODO: return ステートメントをここに挿入します
 	return result;
@@ -134,4 +132,15 @@ const Vector3 Enemy::constGetCenterPosition() {
 
 	// TODO: return ステートメントをここに挿入します
 	return result;
+}
+
+Vector3 Enemy::GetCenterPosition() const
+{
+	//const Vector3 offset = { 0.0f,1.5f,0.0f };
+
+	const Vector3 offset = { 0.0f,0.0f,0.0f };
+
+	Vector3 worldPos = TransformNormal(offset, worldTransform_.matWorld_);
+
+	return worldPos;
 }

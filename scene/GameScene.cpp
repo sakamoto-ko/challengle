@@ -28,9 +28,11 @@ void GameScene::Initialize() {
 	modelL_arm_.reset(Model::CreateFromOBJ("left", true));
 	modelR_arm_.reset(Model::CreateFromOBJ("right", true));
 	modelWeapon_.reset(Model::CreateFromOBJ("hammer", true));
+	modelHiEffect_.reset(Model::CreateFromOBJ("effect", true));
 	modelEnemyBody_.reset(Model::CreateFromOBJ("enemy_body", true));
 	modelEnemyL_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
 	modelEnemyR_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
+	modelCollider_.reset(Model::CreateFromOBJ("ico", true));
 
 	//ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -47,16 +49,30 @@ void GameScene::Initialize() {
 	ground_ = std::make_unique<Ground>();
 	ground_->Initialize(modelGround_.get());
 
+	//衝突マネージャの生成
+	std::vector<Model*>playerColliders= {
+		modelCollider_.get(),
+	};
+	collisionManager_ = std::make_unique<CollisionManager>();
+	collisionManager_->Initialize(playerColliders);
+
 	//プレイヤー
 	std::vector<Model*>playerModels = {
 		modelFace_.get(),
 		modelBody_.get(),
 		modelL_arm_.get(),
 		modelR_arm_.get(),
-		modelWeapon_.get()
 	};
 	player_ = std::make_unique<Player>();
 	player_->Initialize(playerModels);
+
+	std::vector<Model*>weaponModels = {
+		modelWeapon_.get(),
+		modelHiEffect_.get(),
+	};
+	weapon_ = std::make_unique<Weapon>();
+	weapon_->Initialize(weaponModels);
+	weapon_->SetParent(&player_->GetWorldTransform());
 
 	//エネミー
 	LoadEnemyPopData();
@@ -81,6 +97,8 @@ void GameScene::Initialize() {
 	player_->SetLockOn(lockOn_.get());
 	//ロックオン座標をカメラにわたす
 	followCamera_->SetLockOn(lockOn_.get());
+	//ロックオン座標を武器にわたす
+	weapon_->SetLockOn(lockOn_.get());
 
 	//軸方向の表示を有効にする
 	AxisIndicator::GetInstance()->SetVisible(true);
@@ -113,6 +131,23 @@ void GameScene::Update() {
 	//プレイヤー
 	player_->Update();
 
+	if (player_->GetAttack()) {
+		if (!weapon_->GetIsReset()) {
+			weapon_->Reset();
+		}
+		weapon_->Update(player_->GetCenterPosition());
+		if (weapon_->GetAttackFinish()) {
+			player_->SetBehaviorRoot();
+			weapon_->SetIsReset(false);
+		}
+	}
+
+	weapon_->Imgui();
+
+	if (weapon_->GetIsEffect()) {
+		weapon_->Effect();
+	}
+
 	//敵の発生と更新
 	UpdateEnemyPopCommands();
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
@@ -137,6 +172,12 @@ void GameScene::Update() {
 	}
 	//ビュープロジェクション行列の転送
 	viewProjection_.TransferMatrix();
+
+	//デバッグ表示用にワールドトランスフォームを更新
+	collisionManager_->UpdateWorldTransform();
+
+	//衝突判定と応答
+	CheckAllColisions();
 }
 
 void GameScene::Draw() {
@@ -169,11 +210,21 @@ void GameScene::Draw() {
 	skydome_->Draw(viewProjection_);
 	ground_->Draw(viewProjection_);
 
-	player_->Draw(viewProjection_);
-
 	for (std::unique_ptr<Enemy>& enemy : enemies_) {
 		enemy->Draw(viewProjection_);
 	}
+
+	player_->Draw(viewProjection_);
+
+	if (player_->GetAttack()) {
+		weapon_->Draw(viewProjection_);
+	}
+
+	if (weapon_->GetIsEffect()) {
+		weapon_->EffectDraw(viewProjection_);
+	}
+
+	collisionManager_->Draw(viewProjection_);
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -297,15 +348,23 @@ void GameScene::EnemyPop(Vector3 pos) {
 		//更新
 		enemy->Update();
 	}
+}
 
-	//イテレータ
-	//for (auto enemy = enemies_.begin(); enemy != enemies_.end(); ++enemy) {
-	//	//各セッターに値を入
-	//	SetEnemyPopPos(pos);
-	//	enemy->get()->SetViewPRojection(&followCamera_->GetViewProjection());
-	//	enemy->get()->SetGameScene(this);
+void GameScene::CheckAllColisions()
+{
+	//weapon_->SetScale(Vector3{ 1.0f,1.0f,1.0f });
 
-	//	//更新
-	//	enemy->get()->Update();
-	//}
+	//衝突マネージャのリセット
+	collisionManager_->Reset();
+
+	//コライダーをリストに登録
+	collisionManager_->AddCollider(player_.get());
+	collisionManager_->AddCollider(weapon_.get());
+	//敵全てについて
+	for (const std::unique_ptr<Enemy>& enemy : enemies_) {
+		collisionManager_->AddCollider(enemy.get());
+	}
+
+	//衝突判定と応答
+	collisionManager_->CheckAllCollisions();
 }

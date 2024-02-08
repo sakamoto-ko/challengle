@@ -20,12 +20,19 @@ void Player::ApplyGlobalVariables() {
 
 void Player::AllWorldTransformUpdateMatrix()
 {
-	worldTransformBase_.UpdateMatrix();
+	//既定クラスの更新
+	BaseCharacter::Update();
+	worldTransform_.UpdateMatrix();
 	worldTransformBody_.UpdateMatrix();
 	worldTransformFace_.UpdateMatrix();
 	worldTransformL_arm_.UpdateMatrix();
 	worldTransformR_arm_.UpdateMatrix();
-	worldTransformWeapon_.UpdateMatrix();
+}
+
+void Player::SetBehaviorRoot()
+{
+	behaviorRequest_ = Behavior::kRoot;
+	isAttack_ = false;
 }
 
 void Player::Reset(const std::vector<Model*>& models)
@@ -34,11 +41,11 @@ void Player::Reset(const std::vector<Model*>& models)
 	BaseCharacter::Initialize(models);
 
 	//ワールド変換の初期化
-	worldTransformBase_.Initialize();
-	worldTransformBase_.translation_.y = 3.0f;
+	worldTransform_.Initialize();
+	worldTransform_.translation_.y = 3.0f;
 	//体
 	worldTransformBody_.Initialize();
-	worldTransformBody_.parent_ = &worldTransformBase_;
+	worldTransformBody_.parent_ = &worldTransform_;
 	//頭
 	worldTransformFace_.Initialize();
 	worldTransformFace_.parent_ = &worldTransformBody_;
@@ -49,14 +56,8 @@ void Player::Reset(const std::vector<Model*>& models)
 	worldTransformR_arm_.Initialize();
 	worldTransformR_arm_.parent_ = &worldTransformBody_;
 
-	//武器
-	worldTransformWeapon_.Initialize();
-	worldTransformWeapon_.parent_ = &worldTransformBody_;
-
-	worldTransformL_arm_.translation_.x = worldTransformBase_.translation_.x + 0.75f;
-	worldTransformR_arm_.translation_.x = worldTransformBase_.translation_.x - 0.75f;
-
-	worldTransformWeapon_.translation_.y = worldTransformBase_.translation_.x - 1.5f;
+	worldTransformL_arm_.translation_.x = worldTransform_.translation_.x + 0.75f;
+	worldTransformR_arm_.translation_.x = worldTransform_.translation_.x - 0.75f;
 
 	velocity_ = { 0.0f,0.0f,0.0f };
 
@@ -65,13 +66,21 @@ void Player::Reset(const std::vector<Model*>& models)
 
 	isAttack_ = false;
 	isJump_ = false;
-	afterAttackStay_ = 20;
 
-	isSwingUp_ = false;
-	isSwingDown_ = false;
+	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+}
 
-	speed_ = 0.1f;
-	attackTime_ = 0;
+void Player::OnCollision([[maybe_unused]] Collider* other)
+//void Player::OnCollision()
+{
+	//衝突相手の種別IDを取得
+	uint32_t typeID = other->GetTypeID();
+	//衝突相手が敵なら
+	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
+		//ジャンプリクエスト
+		SetBehavior(Behavior::kJump);
+		isJump_ = true;
+	}
 }
 
 Player::Player() {}
@@ -85,13 +94,24 @@ void Player::Initialize(const std::vector<Model*>& models) {
 	//グループを追加
 	GlobalVariables::GetInstance()->CreateGroup(groupName);
 
-	ApplyGlobalVariables();
-
 	grobalVariables->AddItem(groupName, "Head Translation", worldTransformFace_.translation_);
 	grobalVariables->AddItem(groupName, "ArmL Translation", worldTransformL_arm_.translation_);
 	grobalVariables->AddItem(groupName, "ArmR Translation", worldTransformR_arm_.translation_);
 
+	ApplyGlobalVariables();
+
 	Reset(models);
+}
+
+Vector3 Player::GetCenterPosition() const
+{
+	//const Vector3 offset = { 0.0f,1.5f,0.0f };
+
+	const Vector3 offset = { 0.0f,0.0f,0.0f };
+
+	Vector3 worldPos = TransformNormal(offset, worldTransform_.matWorld_);
+
+	return worldPos;
 }
 
 //浮遊ギミック初期化
@@ -108,18 +128,10 @@ void Player::InitializeFloatingGimmick() {
 
 //通常行動初期化
 void Player::BehaviorRootInitialize() {
-	worldTransformWeapon_.rotation_.x = -1.5f;
 }
 
 //攻撃行動初期化
 void Player::BehaviorAttackInitialize() {
-	afterAttackStay_ = 20; 
-	speed_ = 0.1f;
-	attackTime_ = 0;
-	/*worldTransformL_arm_.rotation_ = { 0.0f,1.5f,0.0f };
-	worldTransformR_arm_.rotation_ = { 0.0f,-1.5f,0.0f };*/
-	isSwingUp_ = true;
-	isSwingDown_ = false;
 }
 
 void Player::Update() {
@@ -183,11 +195,11 @@ void Player::Update() {
 			ImGui::DragFloat3("R_arm.rotation_", &worldTransformR_arm_.rotation_.x, 0.1f);
 			ImGui::TreePop();
 		}
-		if (ImGui::TreeNode("weapon")) {
+		/*if (ImGui::TreeNode("weapon")) {
 			ImGui::SliderFloat3("weapon.translation_", &worldTransformWeapon_.translation_.x, -10, 10);
 			ImGui::SliderFloat3("weapon.rotation_", &worldTransformWeapon_.rotation_.x, -10, 10);
 			ImGui::TreePop();
-		}
+		}*/
 		ImGui::TreePop();
 	}
 	ImGui::End();
@@ -249,17 +261,17 @@ void Player::BehaviorRootUpdate() {
 
 			//移動方向に向きを合わせる
 			//Y軸周り角度(θy)
-			worldTransformBase_.rotation_.y = std::atan2(-velocity_.x, -velocity_.z);
+			worldTransform_.rotation_.y = std::atan2(-velocity_.x, -velocity_.z);
 
 			//移動
-			worldTransformBase_.translation_ = Add(worldTransformBase_.translation_, velocity_);
+			worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
 		}
 		//スティックの入力がないとき、ロックオンした敵を追従(視点)
 		else if (lockOn_ && lockOn_->ExistTarget()) {
 			Vector3 lockOnPosition = lockOn_->GetTargetPosition();
-			Vector3 sub = Subtract(lockOnPosition, worldTransformBase_.translation_);
+			Vector3 sub = Subtract(lockOnPosition, worldTransform_.translation_);
 
-			worldTransformBase_.rotation_.y = std::atan2(-sub.x, -sub.z);
+			worldTransform_.rotation_.y = std::atan2(-sub.x, -sub.z);
 		}
 	}
 
@@ -282,13 +294,10 @@ void Player::BehaviorRootUpdate() {
 
 //攻撃行動更新
 void Player::BehaviorAttackUpdate() {
-	//既定クラスの更新
-	BaseCharacter::Update();
-
 	//ロックオン中
 	if (lockOn_ && lockOn_->ExistTarget()) {
 		Vector3 lockOnPosition = lockOn_->GetTargetPosition();
-		Vector3 sub = Subtract(lockOnPosition, worldTransformBase_.translation_);
+		Vector3 sub = Subtract(lockOnPosition, worldTransform_.translation_);
 
 		//距離
 		float distance = Length(sub);
@@ -297,45 +306,7 @@ void Player::BehaviorAttackUpdate() {
 
 		//閾値より離れている時のみ
 		if (distance > threshold) {
-			worldTransformBase_.rotation_.y = std::atan2(-sub.x, -sub.z);
-
-			//閾値を超える速さなら補正する
-			if (speed_ > distance - threshold) {
-				//ロックオン対象へのめり込み防止
-				speed_ = distance - threshold;
-			}
-		}
-	}
-
-	//振り上げて
-	if (isSwingUp_) {
-		/*worldTransformL_arm_.rotation_.x -= 0.2f;
-		worldTransformR_arm_.rotation_.x -= 0.2f;*/
-		worldTransformWeapon_.rotation_.x += speed_;
-		if (worldTransformWeapon_.rotation_.x >= 0.6f) {
-			isSwingUp_ = false;
-			isSwingDown_ = true;
-			attackTime_ = 0;
-		}
-	}
-	//降り下ろす
-	else if (isSwingDown_) {
-		/*worldTransformL_arm_.rotation_.x += 0.1f;
-		worldTransformR_arm_.rotation_.x += 0.1f;*/
-		worldTransformWeapon_.rotation_.x -= speed_;
-		if (++attackTime_ >= 20) {
-			isSwingDown_ = false;
-			attackTime_ = 0;
-		}
-	}
-	//待機
-	else if (!isSwingUp_ && !isSwingDown_) {
-		if (--afterAttackStay_ <= 0) {
-			/*worldTransformL_arm_.rotation_ = { 0.0f,0.0f,0.0f };
-			worldTransformR_arm_.rotation_ = { 0.0f,0.0f,0.0f };*/
-			attackTime_ = 0;
-			isAttack_ = false;
-			SetBehavior(Behavior::kRoot);
+			worldTransform_.rotation_.y = std::atan2(-sub.x, -sub.z);
 		}
 	}
 
@@ -350,9 +321,6 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
 	models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
 	models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
-	if (isAttack_) {
-		models_[kModelWeapon]->Draw(worldTransformWeapon_, viewProjection);
-	}
 }
 
 //ジャンプ行動初期化
@@ -386,10 +354,10 @@ void Player::BehaviorJumpUpdate() {
 
 		//移動方向に向きを合わせる
 		//Y軸周り角度(θy)
-		worldTransformBase_.rotation_.y = std::atan2(-velocity_.x, -velocity_.z);
+		worldTransform_.rotation_.y = std::atan2(-velocity_.x, -velocity_.z);
 
 		//移動
-		worldTransformBase_.translation_ = Add(worldTransformBase_.translation_, velocity_);
+		worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
 		//重力加速度
 		const float kGravityAcceleration = 0.05f;
 		//加速度ベクトル
@@ -398,8 +366,8 @@ void Player::BehaviorJumpUpdate() {
 		velocity_.y += accelerationVector.y;
 
 		//着地
-		if (worldTransformBase_.translation_.y <= 3.0f) {
-			worldTransformBase_.translation_.y = 3.0f;
+		if (worldTransform_.translation_.y <= 3.0f) {
+			worldTransform_.translation_.y = 3.0f;
 			//ジャンプ終了
 			isJump_ = false;
 			SetBehavior(Behavior::kRoot);
