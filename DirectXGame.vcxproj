@@ -120,7 +120,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyMath.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="scene\ClearScene.cpp" />
+    <ClCompile Include="scene\GameoverScene.cpp" />
     <ClCompile Include="scene\GameScene.cpp" />
+    <ClCompile Include="scene\TitleScene.cpp" />
+    <ClCompile Include="scene\TransitionEffect.cpp" />
     <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="Weapon.cpp" />
     <ClCompile Include="WorldTransformEx.cpp" />
@@ -164,7 +168,11 @@
     <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="MyMath.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="scene\ClearScene.h" />
+    <ClInclude Include="scene\GameoverScene.h" />
     <ClInclude Include="scene\GameScene.h" />
+    <ClInclude Include="scene\TitleScene.h" />
+    <ClInclude Include="scene\TransitionEffect.h" />
     <ClInclude Include="Skydome.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>
