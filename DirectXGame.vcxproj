@@ -171,6 +171,7 @@
     <ClInclude Include="scene\ClearScene.h" />
     <ClInclude Include="scene\GameoverScene.h" />
     <ClInclude Include="scene\GameScene.h" />
+    <ClInclude Include="scene\Scene.h" />
     <ClInclude Include="scene\TitleScene.h" />
     <ClInclude Include="scene\TransitionEffect.h" />
     <ClInclude Include="Skydome.h" />
