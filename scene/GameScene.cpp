@@ -34,6 +34,20 @@ void GameScene::Initialize() {
 	modelEnemyR_arm_.reset(Model::CreateFromOBJ("enemy_weapon", true));
 	modelCollider_.reset(Model::CreateFromOBJ("ico", true));
 
+	// 画像
+	tex_ = TextureManager::Load("UI/tutorial.png");
+	sprites_.reset(Sprite::Create(tex_, { 0.0f, 0.0f }));
+	sprites_->SetSize({ 852.0f, 480.0f });
+	sprites_->SetTextureRect(
+		{
+			0.0f,
+			0.0f,
+		},
+		{ 1280.0f, 720.0f });
+	sprites_->SetPosition({ 228.0f, 120.0f });
+
+	transition_ = TransitionEffect::GetInstance();
+
 	//ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
 
@@ -75,6 +89,9 @@ void GameScene::Initialize() {
 	weapon_->SetParent(&player_->GetWorldTransform());
 
 	//エネミー
+	enemyCount = 0;
+
+	//エネミー
 	LoadEnemyPopData();
 	UpdateEnemyPopCommands();
 
@@ -104,6 +121,8 @@ void GameScene::Initialize() {
 	AxisIndicator::GetInstance()->SetVisible(true);
 	//軸方向が参照するビュープロジェクションを指定する(アドレスなし)
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
+
+	isTutorial = true; 
 }
 
 void GameScene::Update() {
@@ -120,7 +139,7 @@ void GameScene::Update() {
 #endif
 
 	//ゲームパッドの状態を得る変数(XINPUT)
-	//XINPUT_STATE joyState;
+	XINPUT_STATE joyState;
 
 	//スカイドーム
 	skydome_->Update();
@@ -128,56 +147,101 @@ void GameScene::Update() {
 	//グラウンド
 	ground_->Update();
 
-	//プレイヤー
-	player_->Update();
+	if (isTutorial) {
 
-	if (player_->GetAttack()) {
-		if (!weapon_->GetIsReset()) {
-			weapon_->Reset();
+		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+			//Rトリガーを押していたら
+			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+				isTutorial = false;
+			}
 		}
-		weapon_->Update(player_->GetCenterPosition());
-		if (weapon_->GetAttackFinish()) {
-			player_->SetBehaviorRoot();
-			weapon_->SetIsReset(false);
-		}
-	}
-
-	weapon_->Imgui();
-
-	if (weapon_->GetIsEffect()) {
-		weapon_->Effect();
-	}
-
-	//敵の発生と更新
-	UpdateEnemyPopCommands();
-	for (std::unique_ptr<Enemy>& enemy : enemies_) {
-		enemy->Update();
-	}
-
-	//ロックオン
-	lockOn_->Update(enemies_, viewProjection_);
-
-	//カメラ
-	if (isDebugCameraActive_) {
-		//デバッグカメラの更新
-		debugCamera_->Update();
-		viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
 	}
 	else {
-		//追従カメラ
-		followCamera_->Update();
-		viewProjection_.matView = followCamera_->GetViewProjection().matView;
-		viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
+		//プレイヤー
+		player_->Update();
+
+		if (player_->GetAttack()) {
+			if (!weapon_->GetIsReset()) {
+				weapon_->Reset();
+			}
+			weapon_->Update(player_->GetCenterPosition());
+			if (weapon_->GetAttackFinish()) {
+				player_->SetBehaviorRoot();
+				weapon_->SetIsReset(false);
+			}
+		}
+
+		weapon_->Imgui();
+
+		if (weapon_->GetIsEffect()) {
+			weapon_->Effect();
+		}
+
+		//敵の発生と更新
+		UpdateEnemyPopCommands();
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			enemy->Update();
+		}
+
+		//ロックオン
+		lockOn_->Update(enemies_, viewProjection_);
+
+		//カメラ
+		if (isDebugCameraActive_) {
+			//デバッグカメラの更新
+			debugCamera_->Update();
+			viewProjection_.matView = debugCamera_->GetViewProjection().matView;
+			viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
+		}
+		else {
+			//追従カメラ
+			followCamera_->Update();
+			viewProjection_.matView = followCamera_->GetViewProjection().matView;
+			viewProjection_.matProjection = followCamera_->GetViewProjection().matProjection;
+		}
+		//ビュープロジェクション行列の転送
+		viewProjection_.TransferMatrix();
+
+		//デバッグ表示用にワールドトランスフォームを更新
+		collisionManager_->UpdateWorldTransform();
+
+		//衝突判定と応答
+		CheckAllColisions();
 	}
-	//ビュープロジェクション行列の転送
-	viewProjection_.TransferMatrix();
+	if (transition_->GetIsChangeScene()) {
 
-	//デバッグ表示用にワールドトランスフォームを更新
-	collisionManager_->UpdateWorldTransform();
+		// ゲームシーンにフェードインする時、またはゲームシーンからフェードアウトする時更新
 
-	//衝突判定と応答
-	CheckAllColisions();
+		if ((transition_->GetFadeIn() && transition_->GetNextScene() == CLEAR) ||
+			(transition_->GetFadeIn() && transition_->GetNextScene() == GAMEOVER) ||
+			(transition_->GetFadeIn() && transition_->GetNextScene() == RESET) ||
+			(transition_->GetFadeOut() && transition_->GetNextScene() == GAME)) {
+			transition_->Update();
+		}
+		// ゲームシーンからのフェードアウト終了でシーン遷移を止める
+		else if (transition_->GetFadeIn() && transition_->GetNextScene() == GAME) {
+			transition_->SetIsChangeScene(false);
+			transition_->Reset();
+		}
+		// ゲームシーンへのフェードインが完了したら
+		else {
+			// 実際に遷移する
+			transition_->ChangeScene();
+		}
+	}
+
+	if (CheckAllEnemyIsDead()) {
+		isGameClear_ = true;
+	}
+	else if (CheckPlayerIsDead()) {
+		isGameOver_ = true;
+	}
+	// シーンチェンジ
+	if (isGameClear_ || isGameOver_) {
+		if (isGameClear_) { transition_->SetNextScene(CLEAR); }
+		else if (isGameOver_) { transition_->SetNextScene(GAMEOVER); }
+		transition_->SetIsChangeScene(true);
+	}
 }
 
 void GameScene::Draw() {
@@ -224,7 +288,11 @@ void GameScene::Draw() {
 		weapon_->EffectDraw(viewProjection_);
 	}
 
+#ifdef DEBUG
+
 	collisionManager_->Draw(viewProjection_);
+
+#endif // DEBUG
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -239,6 +307,14 @@ void GameScene::Draw() {
 	/// </summary>
 
 	lockOn_->Draw();
+
+	if (isTutorial) {
+		// タイトルの表示
+		sprites_->Draw();
+	}
+
+	// 画面遷移の描画
+	transition_->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
@@ -367,4 +443,40 @@ void GameScene::CheckAllColisions()
 
 	//衝突判定と応答
 	collisionManager_->CheckAllCollisions();
+}
+
+void GameScene::Reset() {
+
+	player_->Reset();
+
+	enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+		delete enemy.release();
+		return true;
+		});
+
+	enemyCount = 0;
+	killEnemyCount_ = 0;
+
+	isGameClear_ = false;
+	isGameOver_ = false;
+	isTutorial = true;
+}
+
+bool GameScene::CheckAllEnemyIsDead() {
+	if (killEnemyCount_ >= 10) {
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			if (enemy->IsDead()) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+bool GameScene::CheckPlayerIsDead() {
+	if (player_->IsDead() == false) {
+		return false;
+	}
+
+	return true;
 }

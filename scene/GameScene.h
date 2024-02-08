@@ -13,6 +13,7 @@
 #include "LockOn.h"
 #include "CollisionManager.h"
 #include "Weapon.h"
+#include "TransitionEffect.h"
 
 /// <summary>
 /// ゲームシーン
@@ -63,12 +64,31 @@ public: // メンバ関数
 	//衝突判定
 	void CheckAllColisions();
 
+	void Reset();
+
+	bool GetIsReset() { return isReset_; }
+
+	// シーン遷移ゲッター
+	bool GetChangeGameScene() { return isChangeGameScene_; }
+
+	// シーン遷移セッター
+	void SetChangeGameScene(bool flag) { isChangeGameScene_ = flag; }
+
+	//全ての敵が死んだかどうか確認するフラグ
+	bool CheckAllEnemyIsDead();
+
+	//プレイヤーが死んだかどうか確認するフラグ
+	bool CheckPlayerIsDead();
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 
 	//テクスチャハンドル
 	//uint32_t textureHandle_ = 0;
+
+	// 画面遷移アニメーション
+	TransitionEffect* transition_ = nullptr;
 
 	//スプライト
 	Sprite* sprite_ = nullptr;
@@ -136,4 +156,24 @@ private: // メンバ変数
 
 	//衝突マネージャ
 	std::unique_ptr<Weapon> weapon_;
+
+	int enemyCount = 0;
+
+	bool isReset_ = false;
+
+	bool isChangeGameScene_ = false;
+
+	bool isGameClear_ = false;
+
+	bool isGameOver_ = false;
+
+	// 画像
+	uint32_t tex_ = 0u;
+
+	// スプライト
+	std::unique_ptr<Sprite> sprites_ = {};
+
+	int killEnemyCount_ = 0;
+
+	bool isTutorial = true;
 };

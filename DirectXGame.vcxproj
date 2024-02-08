@@ -110,10 +110,12 @@
     <ClCompile Include="BaseCharactor.cpp" />
     <ClCompile Include="base\DirectXCommon.cpp" />
     <ClCompile Include="base\WinApp.cpp" />
+    <ClCompile Include="ClearScene.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FollowCamera.cpp" />
+    <ClCompile Include="GameoverScene.cpp" />
     <ClCompile Include="GlobalVariables.cpp" />
     <ClCompile Include="Ground.cpp" />
     <ClCompile Include="LockOn.cpp" />
@@ -122,6 +124,8 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="scene\GameScene.cpp" />
     <ClCompile Include="Skydome.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
+    <ClCompile Include="TransitionEffect.cpp" />
     <ClCompile Include="Weapon.cpp" />
     <ClCompile Include="WorldTransformEx.cpp" />
   </ItemGroup>
@@ -149,11 +153,13 @@
     <ClInclude Include="base\SafeDelete.h" />
     <ClInclude Include="base\TextureManager.h" />
     <ClInclude Include="base\WinApp.h" />
+    <ClInclude Include="ClearScene.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="CollisionTypeIdDef.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="FollowCamera.h" />
+    <ClInclude Include="GameoverScene.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Ground.h" />
     <ClInclude Include="input\Input.h" />
@@ -164,8 +170,11 @@
     <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="MyMath.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="scene\GameScene.h" />
     <ClInclude Include="Skydome.h" />
+    <ClInclude Include="TitleScene.h" />
+    <ClInclude Include="TransitionEffect.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>
   <ItemGroup>
