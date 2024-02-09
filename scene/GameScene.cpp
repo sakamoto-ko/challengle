@@ -290,20 +290,22 @@ void GameScene::Draw() {
 	/// </summary>
 
 	skydome_->Draw(viewProjection_);
-	ground_->Draw(viewProjection_);
+	if (!isTutorial) {
+		ground_->Draw(viewProjection_);
 
-	for (std::unique_ptr<Enemy>& enemy : enemies_) {
-		enemy->Draw(viewProjection_);
-	}
+		for (std::unique_ptr<Enemy>& enemy : enemies_) {
+			enemy->Draw(viewProjection_);
+		}
 
-	player_->Draw(viewProjection_);
+		player_->Draw(viewProjection_);
 
-	if (player_->GetAttack()) {
-		weapon_->Draw(viewProjection_);
-	}
+		if (player_->GetAttack()) {
+			weapon_->Draw(viewProjection_);
+		}
 
-	if (weapon_->GetIsEffect()) {
-		weapon_->EffectDraw(viewProjection_);
+		if (weapon_->GetIsEffect()) {
+			weapon_->EffectDraw(viewProjection_);
+		}
 	}
 
 #ifdef DEBUG

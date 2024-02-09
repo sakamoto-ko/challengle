@@ -66,7 +66,6 @@ void ClearScene::Update() {
 	}
 	// シーンチェンジしていない時の処理
 	else {
-
 		// シーンチェンジ
 		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 			//Rトリガーを押していたら
