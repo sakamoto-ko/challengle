@@ -54,8 +54,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	TextureManager::GetInstance()->Initialize(dxCommon->GetDevice());
 	TextureManager::Load("white1x1.png");
 
-	uint32_t whiteTex_ = TextureManager::Load("UI/player.png");
-	uint32_t blackTex_ = TextureManager::Load("UI/enemy.png");
+	uint32_t whiteTex_ = TextureManager::Load("UI/black.png");
+	uint32_t blackTex_ = TextureManager::Load("UI/black.png");
 
 	// スプライト静的初期化
 	Sprite::StaticInitialize(dxCommon->GetDevice(), WinApp::kWindowWidth, WinApp::kWindowHeight);
