@@ -9,7 +9,7 @@ class Collider
 {
 private:
 	//衝突半径
-	float radius_ = 1.5f;
+	float radius_ = 3.0f;
 
 	//ワールド変換データ
 	WorldTransform worldTransform_;

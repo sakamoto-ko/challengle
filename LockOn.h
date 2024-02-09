@@ -48,6 +48,8 @@ public:
 
 	bool ExistTarget() const { return target_ ? true : false; }
 
+	void DeleteTarget();
+
 private:
 	Input* input_ = nullptr;
 

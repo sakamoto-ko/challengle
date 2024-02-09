@@ -188,18 +188,19 @@ void GameScene::Update() {
 			enemy->Update();
 			if (enemy->IsCheckDeaad()) {
 				enemyCount--;
+				lockOn_->DeleteTarget();
 				enemy->SetReturnDead(false);
 			}
 		}
 		//デスフラグの立った敵を削除
-		/*enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+		enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
 			if (enemy->IsDead()) {
 				delete enemy.release();
 				return true;
 			}
 			return false;
 			}
-		);*/
+		);
 
 		//ロックオン
 		lockOn_->Update(enemies_, viewProjection_);
@@ -448,8 +449,6 @@ void GameScene::EnemyPop(Vector3 pos) {
 
 void GameScene::CheckAllColisions()
 {
-	//weapon_->SetScale(Vector3{ 1.0f,1.0f,1.0f });
-
 	//衝突マネージャのリセット
 	collisionManager_->Reset();
 
@@ -469,6 +468,8 @@ void GameScene::CheckAllColisions()
 
 void GameScene::Reset() {
 
+	collisionManager_->Reset();
+
 	std::vector<Model*>playerModels = {
 		modelFace_.get(),
 		modelBody_.get(),
@@ -477,17 +478,14 @@ void GameScene::Reset() {
 	};
 	player_->Reset(playerModels);
 
-	enemyCount = 5;
-
 	//エネミー
-	/*enemies_.remove_if([](std::unique_ptr<Enemy>& enemy) {
-	if (enemy->IsDead()) {
+	enemyCount = 5;
+	enemies_.clear();
+	for (std::unique_ptr<Enemy>& enemy : enemies_) {
 		delete enemy.release();
-		return true;
+		
 	}
-	return false;
-}
-); */
+	LoadEnemyPopData();
 	UpdateEnemyPopCommands();
 
 	isGameClear_ = false;

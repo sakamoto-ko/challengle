@@ -36,6 +36,7 @@ public:
 	void CheckAllCollisions();
 
 	void AddCollider(Collider* collider);
+	void DeleteCollider(Collider* collider);
 
 	//調整項目の適用
 	void ApplyGlobalVariables();

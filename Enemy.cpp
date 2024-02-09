@@ -114,11 +114,11 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	//既定クラスの描画
 	//BaseCharacter::Draw(viewProjection);
 
-	if (!isDead_) {
+	//if (!isDead_) {
 		models_[kModelBody]->Draw(worldTransformBody_, viewProjection);
 		models_[kModelL_arm]->Draw(worldTransformL_arm_, viewProjection);
 		models_[kModelR_arm]->Draw(worldTransformR_arm_, viewProjection);
-	}
+	//}
 }
 
 void Enemy::Reset(const std::vector<Model*>& models)

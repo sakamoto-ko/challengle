@@ -13,7 +13,7 @@ void CollisionManager::Initialize(const std::vector<Model*>& models)
 	ApplyGlobalVariables();
 
 	models_ = models;
-	isCollider_ = true;
+	isCollider_ = false;
 }
 
 void CollisionManager::UpdateWorldTransform()
@@ -83,6 +83,8 @@ void CollisionManager::CheckAllCollisions()
 }
 
 void CollisionManager::AddCollider(Collider* collider) { colliders_.push_back(collider); }
+
+//void CollisionManager::DeleteCollider(Collider* collider) { colliders_.remove(collider); }
 
 void CollisionManager::ApplyGlobalVariables()
 {

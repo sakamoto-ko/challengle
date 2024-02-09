@@ -22,11 +22,11 @@ void LockOn::Update(const std::list<std::unique_ptr<Enemy>>& enemies, const View
 		//Lトリガーを押していたら
 		if (TriggerL()) {
 			//ロックオン解除
-			target_ = nullptr;
+			DeleteTarget();
 		}
 		//範囲外設定
 		else if (OutOfRange(viewProjection)) {
-			target_ = nullptr;
+			DeleteTarget();
 		}
 	}
 	else {
@@ -78,7 +78,7 @@ void LockOn::LockOnTargetSerch(const std::list<std::unique_ptr<Enemy>>& enemies,
 
 		/*距離でソートしてロックオン対象を決定*/
 		//ロックオン対象をリセット
-		target_ = nullptr;
+		DeleteTarget();
 
 		if (!targets.empty()) {
 			//距離で昇順にソート
@@ -185,4 +185,9 @@ Vector3 LockOn::GetTargetPosition() const
 		return target_->GetCenterPosition();
 	}
 	return Vector3();
+}
+
+void LockOn::DeleteTarget()
+{
+	target_ = nullptr;
 }
