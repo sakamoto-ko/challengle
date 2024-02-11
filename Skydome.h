@@ -1,30 +1,20 @@
-#pragma once
-#include "Audio.h"
-#include "AxisIndicator.h"
-#include "DebugCamera.h"
-#include "DirectXCommon.h"
-#include "ImGuiManager.h"
-#include "Input.h"
+﻿#pragma once
 #include "Model.h"
-#include "SafeDelete.h"
-#include "Sprite.h"
-#include "TextureManager.h"
-#include "ViewProjection.h"
 #include "WorldTransform.h"
+#include <cassert>
 
-class Skydome
-{
+    class Skydome {
+public:
+	void Initialize(Model* model, const Vector3& position);
+
+	void Update();
+
+	void Draw(ViewProjection& view);
+
 private:
-	// ワールド変換データ
+	// ワールド返還データ
 	WorldTransform worldTransform_;
 
 	// モデル
 	Model* model_ = nullptr;
-
-public:
-	Skydome();
-	~Skydome();
-	void Initialize(Model* model);
-	void Update();
-	void Draw(ViewProjection viewProjection_);
 };

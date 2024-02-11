@@ -1,27 +1,15 @@
 #include "Skydome.h"
 
-#include "MyMath.h"
-
-#include <cassert>
-#include <list>
-
-Skydome::Skydome() {}
-Skydome::~Skydome() {}
-void Skydome::Initialize(Model* model) {
+    void
+    Skydome::Initialize(Model* model, const Vector3& position) {
 	assert(model);
-
 	model_ = model;
+
 	worldTransform_.Initialize();
+	worldTransform_.translation_ = position;
+	worldTransform_.scale_ = {300.0f, 300.0f, 300.0f};
 }
 
-void Skydome::Update() {
-	worldTransform_.scale_.x = 100;
-	worldTransform_.scale_.y = 100;
-	worldTransform_.scale_.z = 100;
-	worldTransform_.UpdateMatrix();
-}
+void Skydome::Update() { worldTransform_.UpdateMatrix(); }
 
-void Skydome::Draw(ViewProjection viewProjection_) {
-	//3Dモデル描画
-	model_->Draw(worldTransform_, viewProjection_);
-}
+void Skydome::Draw(ViewProjection& view) { model_->Draw(worldTransform_, view); }

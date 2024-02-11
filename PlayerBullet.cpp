@@ -1,79 +1,47 @@
-#include "PlayerBullet.h"
+﻿#include "PlayerBullet.h"
+#include "newMath.h"
+#include <assert.h>
 
-#include "MyMath.h"
+void PlayerBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
 
-#include <cassert>
-#include <list>
+	assert(model);
+	model_ = model;
+	// テクスチャ読み込み
+	texturehandle_ = TextureManager::Load("white1x1.png");
+
+	// ワールドトランスフォーム
+	worldTransform_.Initialize();
+	// 引数で受け取った初期座標
+	worldTransform_.translation_ = position;
+	// 引数で受け取った速度をメンバに代入
+	velocity_ = velocity;
+}
 
 Vector3 PlayerBullet::GetWorldPosition() {
-	//ワールド座標を入れる変数
-	Vector3 worldPos = {};
-	//ワールド行列の平行移動成分を取得(ワールド座標)
-	worldPos.x = worldTransform_.matWorld_.m[3][0];
-	worldPos.y = worldTransform_.matWorld_.m[3][1];
-	worldPos.z = worldTransform_.matWorld_.m[3][2];
+	Vector3 worldPos;
+
+	worldPos.x = worldTransform_.translation_.x;
+	worldPos.y = worldTransform_.translation_.y;
+	worldPos.z = worldTransform_.translation_.z;
 
 	return worldPos;
 }
 
-void PlayerBullet::OnCollision() {
-	//デスフラグを立てる
-	isDead_ = true;
-}
+void PlayerBullet::OnCollision() { isDead_ = true; }
 
-PlayerBullet::PlayerBullet() {}
-PlayerBullet::~PlayerBullet() {}
-
-// 初期化
-void PlayerBullet::Initialize(const std::vector<Model*>& models, const std::vector<uint32_t>& textures, const Vector3& position, const Vector3 velocity) {
-
-	SetModels(models);
-	SetTextures(textures);
-	tex_ = textures_[0];
-
-	worldTransform_.Initialize();
-
-	worldTransform_.translation_ = position;
-
-	//引数で受け取った速度をメンバ変数に代入
-	velocity_ = velocity;
-	velocity_.y = 0.0f;
-	velocity_.z = 0.0f;
-}
-
-// 更新
 void PlayerBullet::Update() {
-	//座標を移動させる(1フレーム分の移動量を足しこむ)
-	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
-
-#ifdef _DEBUG
-
-	ImGui::Begin("window");
-	if (ImGui::TreeNode("playerBullet")) {
-		ImGui::DragFloat3("translation", &worldTransform_.translation_.x, 0.01f);
-		ImGui::DragFloat3("rotate", &worldTransform_.rotation_.x, 0.01f);
-		ImGui::DragFloat3("scale", &worldTransform_.scale_.x, 0.01f);
-		ImGui::DragFloat3("velocity", &velocity_.x, 0.01f);
-		ImGui::TreePop();
-	}
-	ImGui::End();
-
-#endif // _DEBUG
-
-	//WorldTransformの更新
 	worldTransform_.UpdateMatrix();
+	// 座標を移動
+	worldTransform_.translation_ = Math::Add(worldTransform_.translation_, velocity_);
 
-	//時間経過でデス
-	if (--deathTimer_ < ~0) {
-		//isDead_ = true;
-	}
-	//画面外に出たらデス
-	if (worldTransform_.translation_.x >= 50.0f) {
+	// 時間経過でデス
+	if (--deathtimer_ <= 0) {
 		isDead_ = true;
 	}
 }
 
-// 描画
-void PlayerBullet::Draw(const ViewProjection& viewProjection) {
-	models_[0]->Draw(worldTransform_, viewProjection, tex_);
+void PlayerBullet::Draw(const ViewProjection& view) {
+	model_->Draw(worldTransform_, view, texturehandle_);
 }
+
+// Vector3 PlayerBullet::Add(Vector3& a, Vector3& b) { return {a.x + b.x, a.y + b.y, a.z + b.z}; }

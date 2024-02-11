@@ -1,42 +1,91 @@
-#pragma once
-#include "BaseCharactor.h"
+﻿#pragma once
+#include "EnemyBullet.h"
+#include "Model.h"
+#include "Player.h"
+#include "TimedCall.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
+#include "newMath.h"
+#include <list>
 
-class Enemy : public BaseCharacter
-{
-private:
-	WorldTransform worldTransformBody_;
-	WorldTransform worldTransformL_arm_;
-	WorldTransform worldTransformR_arm_;
+class Player;
 
-	uint32_t kModelBody = 0;
-	uint32_t kModelL_arm = 1;
-	uint32_t kModelR_arm = 2;
+class Enemy;
 
-	//円運動用
-	//中心座標
-	Vector3 center{};
-	//角度
-	Vector3 angle{};
-	//半径の長さ
-	float length;
-
-	//カメラのビュープロジェクション
-	const ViewProjection* viewProjection_ = nullptr;
-
-public:
-	Enemy();
-	~Enemy();
-	void Initialize(const std::vector<Model*>& models) override;
-	void Update() override;
-	void Draw(const ViewProjection& viewProjection) override;
-
-	//移動初期化
-	void InitializeMoveGimmick();
-
-	//移動更新
-	void UpdateMoveGimmick();
-
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
-
+enum class Phase {
+	Approach,
+	Leave,
 };
 
+class EnemyState {
+
+protected:
+	Enemy* enemy_ = nullptr;
+
+public:
+	virtual void SetEnemy(Enemy* enemy) { enemy_ = enemy; }
+	virtual void Update(){};
+};
+
+class EnemyStateApproah : public EnemyState {
+
+public:
+	void Update();
+};
+
+class EnemyStateLeave : public EnemyState {
+
+public:
+	void Update();
+};
+
+class Enemy {
+
+public:
+	~Enemy();
+
+	void Initialize(Model* model, const Vector3& position);
+
+	void Update();
+
+	void Draw(const ViewProjection& view);
+
+	void ChangeState(EnemyState* newEnemyState);
+
+	WorldTransform GetWT() { return worldTransform_; }
+
+	void SetPosition(Vector3 speed);
+
+	// 攻撃
+	void Attack();
+
+	void Fire();
+
+	void SetPlayer(Player* player) { player_ = player; }
+
+	Vector3 GetWorldPosition();
+
+	// 衝突を検証したら呼び出される関数
+	void OnCollision();
+	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
+
+private:
+	WorldTransform worldTransform_;
+	Model* model_;
+	uint32_t texturehandle_;
+
+	Phase phase_ = Phase::Approach;
+
+	Player* player_ = nullptr;
+
+	EnemyState* state;
+
+	// 弾
+	std::list<EnemyBullet*> bullets_;
+
+	std::list<TimedCall*> timedCall_;
+
+	static const int kShotInterval = 60;
+
+	int timer = 0;
+};

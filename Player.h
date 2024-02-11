@@ -1,71 +1,104 @@
-#pragma once
-#include "BaseCharactor.h"
-#include <optional>
+﻿#pragma once
 
-class Player : public BaseCharacter{
-private:
-	WorldTransform worldTransformBase_;
-	WorldTransform worldTransformFace_;
-	WorldTransform worldTransformBody_;
-	WorldTransform worldTransformL_arm_;
-	WorldTransform worldTransformR_arm_;
-	WorldTransform worldTransformWeapon_;
+#include "ImGuiManager.h"
+#include "Input.h"
+#include "Model.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
+#include <cassert>
+#include <list>
+#include "PlayerBullet.h"
 
-	//カメラのビュープロジェクション
-	const ViewProjection* viewProjection_ = nullptr;
-
-	//浮遊ギミックの媒介変数
-	float idelArmAngleMax_ = 0.0f;
-
-	uint16_t frame_ = 0;
-	uint16_t floatingCycle_ = 0;
-	float floatingAmplitude_ = 0;
-
-	uint32_t kModelFace = 0;
-	uint32_t kModelBody = 1;
-	uint32_t kModelL_arm = 2;
-	uint32_t kModelR_arm = 3;
-	uint32_t kModelWeapon = 4;
-
-	enum class Behavior {
-		kRoot,//通常状態
-		kAttack,//攻撃中
-	};
-	Behavior behavior_ = Behavior::kRoot;
-
-	//次のふるまいリクエスト
-	std::optional<Behavior> behaviorRequest_ = std::nullopt;
-
-	int isAttack = false;
-	int afterAttackStay = 20;
-
+class Player {
 public:
-	Player();
-	~Player();
-	void Initialize(const std::vector<Model*>& models) override;
-	void Update() override;
-	void Draw(const ViewProjection& viewProjection) override;
+	/// <summary>
+	/// 初期化
+	/// </summary>
+	void Initialize(Model* model, uint32_t textureHandle);
 
-	const WorldTransform& GetWorldTransform() { return worldTransformBase_; }
+	/// <summary>
+	/// 毎フレーム処理
+	/// </summary>
+	void Update();
 
-	void SetViewPRojection(const ViewProjection* viewProjection) { viewProjection_ = viewProjection; }
+	/// <summary>
+	/// 描画
+	/// </summary>
+	void Draw(ViewProjection viewProjection);
 
-	//浮遊ギミック初期化
+	// 攻撃
+	void Attack();
+
+	Vector3 GetWorldPosition();
+
+	// 衝突を検証したら呼び出される関数
+	void OnCollision();
+	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
+	void SetParent(const WorldTransform* parent);
+
+	WorldTransform& GetWorldMatrix() { return worldTransform_; }
+
+	// 浮遊ギミック初期化
 	void InitializeFloatingGimmick();
-
-	//浮遊ギミック更新
 	void UpdateFloatingGimmick();
 
-	//通常行動初期化
-	void BehaviorRootInitialize();
-	//通常行動更新
-	void BehaviorRootUpdate();
 
-	//攻撃行動初期化
-	void BehaviorAttackInitialize();
-	//攻撃行動更新
-	void BehaviorAttackUpdate();
+	// デストラクタ
+	~Player();
 
-	//調整項目の適用
-	void ApplyGlobalVariables();
+private:
+	// ワールド変換データ
+	WorldTransform worldTransform_;
+	//頭のワールド変換データ
+	WorldTransform worldTransformHead_;
+	//手のワールド変換データ
+	WorldTransform worldTransformL_;
+	WorldTransform worldTransformR_;
+	//足のワールド変換データ
+	WorldTransform worldTransformLL_;
+	WorldTransform worldTransformLR_;
+
+	//付け根左
+	WorldTransform worldTransformRootL_;
+
+	//付け根右
+	WorldTransform worldTransformRootR_;
+
+	//武器
+	WorldTransform worldTransformWeaPon_;
+
+
+
+
+
+	// モデル
+	Model* model_ = nullptr;
+	//頭
+	Model* modelHead_ = nullptr;
+	//手
+	Model* modelL_ = nullptr;
+	Model* modelR_ = nullptr;
+
+	//足
+	Model* modelLL_ = nullptr;
+	Model* modelLR_ = nullptr;
+
+	//武器
+	Model* modelWeapon_ = nullptr;
+
+	// テクスチャハンドル
+	uint32_t textureHandle_ = 0u;
+	// キーボード入力
+	Input* input_ = nullptr;
+	// ImGuiで値を入力する
+	float inputFloat3[3] = {0, 0, 0};
+	// 弾
+	// PlayerBullet* bullet_ = nullptr;
+	// 弾
+	std::list<PlayerBullet*> bullets_;
+
+	float floatingParameter_ = 0.0f;
+	
+	int count = 0;
 };

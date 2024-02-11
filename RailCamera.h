@@ -1,43 +1,32 @@
 ﻿#pragma once
-#include "Audio.h"
-#include "AxisIndicator.h"
-#include "DebugCamera.h"
-#include "DirectXCommon.h"
 #include "ImGuiManager.h"
-#include "Input.h"
-#include "Model.h"
-#include "SafeDelete.h"
-#include "Sprite.h"
-#include "TextureManager.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "newMath.h"
 
-class RailCamera
-{
-private:
-	//ワールドトランスフォーム
-	WorldTransform worldTransform_;
-	//ビュープロジェクション
-	ViewProjection viewProjection_;
+class RailCamera {
 
-	//キーボード入力
-	Input* input_ = nullptr;
-
-	Vector3 kMoveSpeed = {};
-	Vector3 kRotSpeed = {};
 public:
-	RailCamera();
-	~RailCamera();
-	//初期化
-	void Initialize(WorldTransform worldTransform, Vector3 radian);
-	//更新
-	void Update();
-	/// <summary>
-	/// ビュープロジェクションを取得
-	/// </summary>
-	/// <returns>ビュープロジェクション</returns>
-	const ViewProjection& GetViewProjection() { return viewProjection_; }
+	// 初期化
+	void Initialize(const Vector3& position, const Vector3& rotate);
+
+	// 更新
+	void Updata();
+
+	void SetPosition(Vector3 position) {
+		worldTransform_.translation_.x = worldTransform_.translation_.x + position.x;
+		worldTransform_.translation_.y = worldTransform_.translation_.y + position.y;
+		worldTransform_.translation_.z = worldTransform_.translation_.z + position.z;
+	}
 
 	const WorldTransform& GetWorldTransform() { return worldTransform_; }
-};
 
+	const ViewProjection& GetViewProjection() { return viewProjection_; }
+
+private:
+	// ワールド変換データ
+	WorldTransform worldTransform_;
+
+	// ビュープロジェクション
+	ViewProjection viewProjection_;
+};

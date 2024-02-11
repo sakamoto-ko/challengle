@@ -1,15 +1,20 @@
 #pragma once
 
 #include "Audio.h"
-#include "DirectXCommon.h"
 #include "DebugCamera.h"
-#include <memory>
-
-#include "Player.h"
+#include "DirectXCommon.h"
 #include "Enemy.h"
-#include "Skydome.h"
-#include "Ground.h"
-#include "FollowCamera.h"
+#include "Input.h"
+#include "Model.h"
+#include "Player.h"
+#include "SafeDelete.h"
+#include "Sprite.h"
+#include "ViewProjection.h"
+#include "WorldTransform.h"
+#include <RailCamera.h>
+#include <Skydome.h>
+#include "PlayerBullet.h"
+
 
 /// <summary>
 /// ゲームシーン
@@ -42,52 +47,47 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-	//デバッグカメラ有効
-	bool isDebugCameraActive_ = false;
+	/// <summary>
+	/// 衝突判定と応答
+	/// </summary>
+
+	void CheckAllCollisions();
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
+	Audio* audio_ = nullptr;
 
-	//テクスチャハンドル
-	//uint32_t textureHandle_ = 0;
+	// テクスチャハンドル
+	uint32_t textureHandle_ = 0;
 
-	//スプライト
-	Sprite* sprite_ = nullptr;
+	// 3Dモデルデータ
+	Model* model_ = nullptr;
 
-	//3Dモデル
-	std::unique_ptr <Model> model_ = nullptr;
-
-	std::unique_ptr <Model> modelSkydome_ = nullptr;
-	std::unique_ptr <Model> modelGround_ = nullptr;
-	
-	//プレイヤーモデル
-	std::unique_ptr<Model> modelFace_;
-	std::unique_ptr<Model> modelBody_;
-	std::unique_ptr<Model> modelL_arm_;
-	std::unique_ptr<Model> modelR_arm_;
-	std::unique_ptr<Model> modelWeapon_;
-	//エネミーモデル
-	std::unique_ptr<Model> modelEnemyBody_;
-	std::unique_ptr<Model> modelEnemyL_arm_;
-	std::unique_ptr<Model> modelEnemyR_arm_;
-
-	//ワールドトランスフォーム
 	WorldTransform worldTransform_;
-
-	//ビュープロジェクション
+	// ビュープロジェクション
 	ViewProjection viewProjection_;
 
-	//デバッグカメラ
+	// 自キャラ
+	Player* player_ = nullptr;
+
+	//sikaku
+	Sprite* sprite_ = nullptr;
+
+
+
+
+	// スカイドーム
+	Skydome* skydome_ = nullptr;
+	Model* modelSkydome_ = nullptr;
+
+	RailCamera* railCamera_ = nullptr;
+
+	bool isDebugCameraActive_ = false;
 	DebugCamera* debugCamera_ = nullptr;
+	Enemy* enemy_ = nullptr;
 
-	std::unique_ptr<Player> player_;
-
-	std::unique_ptr<Enemy> enemy_;
-
-	std::unique_ptr<Skydome> skydome_;
-
-	std::unique_ptr<Ground> ground_;
-
-	std::unique_ptr<FollowCamera> followCamera_;
+	/// <summary>
+	/// ゲームシーン用
+	/// </summary>
 };
